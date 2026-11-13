@@ -1311,7 +1311,7 @@ async function webFetch(method, url, headers, body) {
 }
 async function webDownload(url, onProgress) {
   let r;
-  try { r = await fetch(url); } catch (e) { throw webErr(e); }
+  try { r = await fetch(url); } catch (e) { const er = new Error('Браузер не отдаёт этот файл приложению (Яндекс не разрешает).'); er.href = url; throw er; }
   if (r.status !== 200) throw new Error('Яндекс Диск не отдал файл (' + r.status + ').');
   const total = +r.headers.get('content-length') || 0, parts = [];
   let got = 0;
@@ -1489,6 +1489,13 @@ function updateCatProgress() {
   if (t) t.textContent = catProgText();
 }
 
+function manualDownload(href, name) {
+  sheet(`<h3>Скачайте файл через Safari</h3><p>Приложение не может скачать «${esc(name || 'книгу')}» само: Яндекс не разрешает это браузеру. Скачайте файл обычным способом, потом добавьте его в читалку.</p>
+    <a class="btn" href="${esc(href)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">1. Скачать файл</a>
+    <p style="margin-top:12px">2. Когда загрузка закончится, вернитесь сюда, нажмите «+» на главном экране и выберите этот файл (раздел «Файлы» → «Загрузки»).</p>
+    <button class="btn grey" id="man-close">Закрыть</button>`);
+  const b = $('#man-close'); if (b) b.onclick = closeSheet;
+}
 async function catDownload(item) {
   if (CAT.dl || !item) return;
   if (item.dir) return catDownloadDir(item);
@@ -1506,6 +1513,7 @@ async function catDownload(item) {
     blob.name = item.name;
   } catch (e) {
     CAT.dl = null;
+    if (e.href) { drawCatalog(); manualDownload(e.href, item.name); return; }
     if (e.message !== 'cancelled') CAT.err = e.message || String(e);
     rmTmp(path);
     drawCatalog();
