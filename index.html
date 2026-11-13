@@ -225,7 +225,13 @@ const DB = (() => {
     const d = await open();
     return new Promise((res, rej) => {
       const t = d.transaction(store, mode); const o = t.objectStore(store); const r = fn(o);
-      t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+      const fail = async () => {
+        let extra = '';
+        try { const s = await navigator.storage.estimate(); extra = ' Занято ' + Math.round(s.usage / 1048576) + ' МБ из доступных браузеру ' + Math.round(s.quota / 1048576) + ' МБ.'; } catch (e) {}
+        const er = t.error || (r && r.error);
+        rej(er || new Error('Хранилище браузера отказалось сохранить данные (вероятно, не хватает места).' + extra));
+      };
+      t.oncomplete = () => res(r && r.result); t.onerror = fail; t.onabort = fail;
     });
   };
   return {
@@ -665,7 +671,7 @@ function pickCover(img, preferName) {
   return img.find(x => /cover|обложк/i.test(x.name)) || img[0];
 }
 async function cleanup(id) { try { await DB.delRange('blobs', id + '/', id + '/\uffff'); } catch (e) {} }
-function quotaMsg(e) { return e && /quota/i.test(e.name + ' ' + e.message) ? 'Не хватает места на телефоне. Освободите память и попробуйте снова.' : (e && e.message) || String(e); }
+function quotaMsg(e) { return e === null || e === undefined ? 'Хранилище браузера отказалось сохранить данные.' : e && /quota/i.test(e.name + ' ' + e.message) ? 'Не хватает места на телефоне. Освободите память и попробуйте снова.' : (e && e.message) || String(e); }
 
 async function importCombo(chaptersRaw, metaFile, img) {
   let m = {};
@@ -735,7 +741,10 @@ async function zipSlice(file, e, type) {
   const h = new DataView(await file.slice(e.lho, e.lho + 30).arrayBuffer());
   if (h.getUint32(0, true) !== 0x04034b50) throw new Error('Файл книги повреждён.');
   const start = e.lho + 30 + h.getUint16(26, true) + h.getUint16(28, true);
-  return file.slice(start, start + e.csize, type || '');
+  const sl = file.slice(start, start + e.csize, type || '');
+  /* Safari на iPhone не умеет класть в хранилище «ссылку на кусок файла» — копируем кусок в память */
+  if (!window.AndroidNet) return new Blob([await sl.arrayBuffer()], { type: type || '' });
+  return sl;
 }
 async function zipText(file, e) {
   const b = await zipSlice(file, e);
@@ -1728,6 +1737,7 @@ window.addEventListener('focus', () => { syncBars(); applyAwake(); });
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 </script>
 </body>
 </html>
