@@ -1,0 +1,1694 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="VOXLIB">
+<meta name="theme-color" content="#F5EEDD">
+<title>VOXLIB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Literata:wght@400;600&family=Onest:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ui:'Onest',system-ui,-apple-system,'Roboto',sans-serif;
+  --serif:'Literata',Georgia,'Noto Serif',serif;
+  --rd-font:var(--serif);--rd-size:19px;--rd-lh:1.65;
+  --bg:#F5EEDD;--surface:#FBF7EC;--chip:#EBE1CB;--ink:#2A2520;--muted:#6B6052;--line:#E2D8C2;--line2:#E8DFC9;
+  --accent:#A8482A;--accent-ink:#fff;--hl:#F3DFA0;--faint:#B9AB8F;--warn:#8F3A1F;--ok:#4B6B2E;
+}
+[data-theme=sepia]{--bg:#E6D5B0;--surface:#EFE2C4;--chip:#DCC9A0;--ink:#3B2E1C;--muted:#6A563A;--line:#D2BF95;--line2:#D8C69C;--accent:#9A3F20;--accent-ink:#FFF8EA;--hl:#E0C275;--faint:#B39F72;--warn:#8F3A1F;--ok:#4B6B2E}
+[data-theme=graphite]{--bg:#3A3D42;--surface:#45494F;--chip:#4E5258;--ink:#E4E2DC;--muted:#A9A8A3;--line:#55595F;--line2:#4A4E54;--accent:#E0805A;--accent-ink:#2A1A12;--hl:#5A5030;--faint:#6B6F76;--warn:#F0997A;--ok:#A3C57A}
+[data-theme=night]{--bg:#16171A;--surface:#1F2024;--chip:#26282C;--ink:#C9C6BE;--muted:#8E8B84;--line:#2E3035;--line2:#26282C;--accent:#D9774F;--accent-ink:#1A0F0A;--hl:#3A3318;--faint:#4A4C52;--warn:#E88C6A;--ok:#8FB36A}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--ui);-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input{font:inherit;color:inherit}
+svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+h1,h2,h3,p{margin:0}
+#app{position:fixed;inset:0}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);overflow:hidden}
+.screen.on{display:flex}
+.scr-pad{padding:max(env(safe-area-inset-top),14px) 20px 0}
+.top{display:flex;align-items:center;justify-content:space-between;min-height:56px}
+.scroll{flex:1;overflow-y:auto;padding:0 20px 28px;-webkit-overflow-scrolling:touch}
+.iconbtn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:22px;flex:none}
+.muted{color:var(--muted)}
+.label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.ttl{font-family:var(--serif);font-weight:600;font-size:21px}
+.btn{height:52px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:500;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn.out{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.btn.grey{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--faint)}
+.btn.danger{background:transparent;color:var(--warn);box-shadow:inset 0 0 0 1.5px var(--warn)}
+.btn.sm{height:44px;border-radius:12px;font-size:15px}
+.seg{display:flex;background:var(--chip);border-radius:12px;padding:4px}
+.seg button{flex:1;height:40px;border-radius:9px;color:var(--muted);font-size:15px}
+.seg button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px}
+.bar3{height:3px;border-radius:2px;background:var(--line)}
+.bar3 i{display:block;height:3px;border-radius:2px;background:var(--accent);width:0}
+.bar4{height:4px;border-radius:2px;background:var(--line)}
+.bar4 i{display:block;height:4px;border-radius:2px;background:var(--accent)}
+.cover{position:relative;overflow:hidden;border-radius:8px;background-size:cover;background-position:center;box-shadow:0 4px 10px rgba(0,0,0,.2)}
+.cover svg.deco{position:absolute;inset:0;width:100%;height:100%;stroke:rgba(255,255,255,.35);stroke-width:1.2}
+.badge{position:absolute;left:6px;bottom:6px;z-index:1;display:flex;align-items:center;gap:4px;padding:4px 7px;border-radius:11px;background:rgba(20,18,16,.62);color:#fff}
+.lib-head{display:flex;align-items:center;justify-content:space-between;min-height:64px}
+.fab{width:46px;height:46px;border-radius:23px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center}
+.cont{display:flex;gap:14px;margin-top:6px}
+.cont .info{flex:1;min-width:0;display:flex;flex-direction:column}
+.cont .btns{display:flex;gap:8px;margin-top:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:18px 12px;margin-top:12px}
+.tile{display:flex;flex-direction:column;gap:6px;min-width:0;text-align:left;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.tile .t{font-size:13px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.add{border:1.5px dashed var(--faint);border-radius:8px;aspect-ratio:2/3;align-items:center;justify-content:center;color:var(--muted);font-size:13px;align-self:start}
+.empty{padding:48px 12px;text-align:center;color:var(--muted);line-height:1.5}
+.list-item{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 10px;margin:0 -10px;border-radius:12px;border-bottom:1px solid var(--line2);width:calc(100% + 20px);text-align:left}
+.list-item.now{background:var(--hl)}
+.dot{width:26px;height:26px;flex:none;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted)}
+.list-item.now .dot{background:var(--accent);color:var(--accent-ink)}
+.list-item.done .dot{background:var(--chip)}
+.src{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--surface);text-align:left;margin-top:10px}
+.src .ico{width:48px;height:48px;flex:none;border-radius:12px;background:var(--chip);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.src.off{opacity:.55}
+.tag{font-size:11px;padding:3px 8px;border-radius:9px;background:var(--chip);color:var(--muted)}
+.kind{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line2)}
+.kind .pill{width:54px;height:30px;flex:none;border-radius:15px;background:var(--chip);display:flex;align-items:center;justify-content:center;gap:6px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 20px 12px;flex:none;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:38px;padding:0 16px;border-radius:19px;background:var(--chip);color:var(--ink);font-size:14px;display:flex;align-items:center;gap:6px;white-space:nowrap;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.chip.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip.add{background:transparent;box-shadow:inset 0 0 0 1.5px var(--faint);color:var(--muted)}
+.lib-search{padding:0 20px 10px;flex:none}
+.sortbtn{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--muted);min-height:36px;flex:none;padding-left:10px}
+.trow{display:flex;align-items:baseline;gap:6px}
+.trow .t{flex:1;min-width:0}
+.trow .pc{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* player */
+.pl-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:0 24px max(env(safe-area-inset-bottom),22px);min-height:0;overflow-y:auto}
+.pl-cover{width:min(74vw,40vh,360px);aspect-ratio:1;border-radius:20px;margin-top:6px;box-shadow:0 18px 32px rgba(0,0,0,.28);flex:none}
+.pl-cover .cover{width:100%;height:100%;border-radius:20px;box-shadow:none}
+.pl-title{text-align:center;margin-top:18px}
+.pl-chtitle{font-family:var(--serif);font-weight:600;font-size:22px;line-height:1.2}
+.pl-prog{width:100%;max-width:520px;margin-top:14px}
+.track{position:relative;height:28px;display:flex;align-items:center;touch-action:none;cursor:pointer}
+.track .rail{position:absolute;left:0;right:0;height:6px;border-radius:3px;background:var(--line)}
+.track .fill{position:absolute;left:0;height:6px;border-radius:3px;background:var(--accent);width:0}
+.track .knob{position:absolute;top:5px;width:18px;height:18px;margin-left:-9px;border-radius:9px;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35);left:0}
+.times{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.pl-ctrl{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:14px}
+.pl-ctrl .sk{width:64px;height:64px;border-radius:32px;background:var(--chip);display:flex;align-items:center;justify-content:center}
+.pl-ctrl .pp{width:88px;height:88px;border-radius:44px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.pl-sec{width:100%;max-width:520px;display:flex;justify-content:space-around;margin-top:16px}
+.pl-sec button{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:72px;min-height:56px;font-size:12px}
+.pl-sec .big{font-weight:600;font-size:16px;height:24px;line-height:24px}
+.pl-read{width:100%;max-width:520px;margin-top:auto;padding-top:14px}
+/* reader */
+.rd-top{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding-left:8px;padding-right:8px;flex:none}
+.rd-top .grp{display:flex;align-items:center;min-width:0}
+.chlink{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:4px;min-height:44px;white-space:nowrap}
+.aa{font-family:var(--serif);font-size:19px;font-weight:600}
+.spk{width:40px;height:40px;margin-left:4px;border-radius:20px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center}
+.rd-view{flex:1;position:relative;overflow:hidden;min-height:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.rd-clip{position:absolute;overflow:hidden}
+.rd-flow{position:relative;column-fill:auto;font-family:var(--rd-font);font-size:var(--rd-size);line-height:var(--rd-lh);transition:transform .18s ease-out;will-change:transform}
+.rd-flow p{margin:0 0 .65em;padding:2px 6px;border-radius:6px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.rd-flow p.cur{background:var(--hl)}
+.rd-flow p.pick{background:var(--hl);box-shadow:inset 3px 0 0 var(--accent)}
+.rd-flow p i,.rd-flow p em{font-style:italic}
+.rd-flow p b,.rd-flow p strong{font-weight:700}
+.rd-flow p sub,.rd-flow p sup{font-size:.72em;line-height:0}
+.rd-flow p s{text-decoration:line-through}
+[data-theme=eink]{--bg:#FFFFFF;--surface:#FFFFFF;--chip:#ECECEC;--ink:#000000;--muted:#2E2E2E;--line:#000000;--line2:#8C8C8C;--accent:#000000;--accent-ink:#FFFFFF;--hl:transparent;--faint:#555555;--warn:#000000;--ok:#000000}
+[data-theme=eink] *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+[data-theme=eink] .rd-flow p.cur{background:none;box-shadow:inset 4px 0 0 #000}
+[data-theme=eink] .rd-flow p.pick{background:#E2E2E2;box-shadow:inset 4px 0 0 #000}
+[data-theme=eink] .spk,[data-theme=eink] .btn{border:2px solid #000}
+.rd-mid{position:absolute;width:1px;top:36px;bottom:20px;left:50%;background:linear-gradient(to bottom,transparent,var(--line) 12%,var(--line) 88%,transparent);display:none}
+.rd-arr{position:absolute;top:50%;margin-top:-22px;width:44px;height:44px;display:none;align-items:center;justify-content:center;color:var(--faint);pointer-events:none}
+.rd-arr.l{left:8px}.rd-arr.r{right:8px}
+.rd-foot{flex:none;padding:6px 24px max(env(safe-area-inset-bottom),20px);display:flex;flex-direction:column;gap:8px}
+.rd-foot .row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rd-empty{padding:40px 24px;text-align:center;color:var(--muted)}
+/* settings */
+.set-sec{margin-top:18px}
+.set-sec .label{margin-bottom:8px}
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.theme{height:72px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid var(--line)}
+.theme.on{border:2.5px solid var(--accent)}
+.theme b{font-family:var(--serif);font-size:22px}
+.theme span{font-size:12px}
+.preview{font-family:var(--rd-font);font-size:var(--rd-size);line-height:var(--rd-lh)}
+.switch{display:flex;align-items:center;justify-content:space-between;min-height:52px;border-top:1px solid var(--line2);width:100%;text-align:left;font-size:15px}
+.switch .sw{width:50px;height:30px;border-radius:15px;background:var(--faint);position:relative;flex:none;transition:background .15s}
+.switch .sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#fff;transition:left .15s}
+.switch.on .sw{background:var(--accent)}
+.switch.on .sw::after{left:23px}
+input[type=range]{width:100%;accent-color:var(--accent);height:32px}
+/* modal / toast */
+#modal{position:fixed;inset:0;z-index:50}
+#modal[hidden]{display:none}
+#modal .scrim{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+#modal .sheet{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px max(env(safe-area-inset-bottom),20px);display:flex;flex-direction:column;gap:10px;max-height:85vh;overflow-y:auto}
+#modal h3{font-family:var(--serif);font-size:19px}
+#modal p{color:var(--muted);font-size:14px;line-height:1.45}
+.input{height:52px;border-radius:14px;border:1.5px solid var(--accent);background:var(--surface);padding:0 14px;font-size:16px;width:100%;outline:0}
+#toast{position:fixed;left:50%;bottom:max(env(safe-area-inset-bottom),28px);transform:translateX(-50%);background:rgba(30,28,25,.92);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;z-index:60;max-width:88vw;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="s-lib" class="screen"></section>
+  <section id="s-add" class="screen"></section>
+  <section id="s-import" class="screen"></section>
+  <section id="s-player" class="screen"></section>
+  <section id="s-reader" class="screen"></section>
+  <section id="s-toc" class="screen"></section>
+  <section id="s-settings" class="screen"></section>
+  <section id="s-catalog" class="screen"></section>
+</div>
+<div id="modal" hidden></div>
+<div id="toast"></div>
+<input type="file" id="pick" multiple hidden>
+
+<script>
+'use strict';
+/* ============================ утилиты ============================ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clean = s => String(s || '').replace(/\s+/g, ' ').trim();
+const basename = s => String(s || '').split(/[\\/]/).pop();
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+const natKey = s => String(s).toLowerCase().split(/(\d+)/).map(t => /^\d+$/.test(t) ? +t : t);
+const natCmp = (a, b) => { const x = natKey(a), y = natKey(b); for (let i = 0; i < Math.min(x.length, y.length); i++) { if (x[i] === y[i]) continue; return (typeof x[i] === typeof y[i]) ? (x[i] < y[i] ? -1 : 1) : (typeof x[i] === 'number' ? -1 : 1); } return x.length - y.length; };
+const fmtT = s => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), c = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(c).padStart(2, '0'); };
+const hash = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
+const GRAD = ['linear-gradient(160deg,#3B4A58,#1D2630)','linear-gradient(160deg,#6E7B4B,#38422A)','linear-gradient(160deg,#B0603C,#6E3220)','linear-gradient(160deg,#2F5A5A,#173031)','linear-gradient(160deg,#6A4A72,#33223A)','linear-gradient(160deg,#8A6A2F,#493414)'];
+
+const IC = {
+  back:'<path d="M15 5l-7 7 7 7"/>', down:'<path d="M5 9l7 7 7-7"/>', right:'<path d="M9 5l7 7-7 7"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>', close:'<path d="M6 6l12 12M18 6L6 18"/>',
+  head:'<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',
+  book:'<path d="M12 6c-2-1.5-5-2-8-2v14c3 0 6 .5 8 2 2-1.5 5-2 8-2V4c-3 0-6 .5-8 2zM12 6v14"/>',
+  mark:'<path d="M7 4h10v16l-5-4-5 4z"/>', markplus:'<path d="M7 4h10v16l-5-4-5 4z"/><path d="M12 8v5M9.5 10.5h5"/>',
+  speaker:'<path d="M4 10v4h3.5L12 18V6L7.5 10z"/><path d="M15.5 9a4 4 0 010 6M18 6.5a8 8 0 010 11"/>',
+  folder:'<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',
+  cloud:'<path d="M7 18h10a4 4 0 00.6-7.95A5.5 5.5 0 006.9 9.3 4.4 4.4 0 007 18z"/>',
+  cloudd:'<path d="M7 18h10a4 4 0 00.6-7.95A5.5 5.5 0 006.9 9.3 4.4 4.4 0 007 18z"/><path d="M12 10v5M9.5 13l2.5 2.5 2.5-2.5"/>', search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>', check:'<path d="M5 12l5 5 9-10"/>', clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', list:'<path d="M5 7h14M5 12h14M5 17h14"/>'
+};
+const ic = (n, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
+const skipIc = (dir, s = 30) => dir < 0
+  ? `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 107-7H7"/><path d="M9.5 2.5L6.5 5l3 2.5"/><text x="12" y="15.4" text-anchor="middle" font-size="7.5" font-weight="600" style="fill:currentColor;stroke:none">10</text></svg>`
+  : `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12a7 7 0 11-7-7h5"/><path d="M14.5 2.5l3 2.5-3 2.5"/><text x="12" y="15.4" text-anchor="middle" font-size="7.5" font-weight="600" style="fill:currentColor;stroke:none">10</text></svg>`;
+const playIc = s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none"><path d="M8 4.5l11 7.5-11 7.5z"/></svg>`;
+const pauseIc = s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none"><rect x="6.5" y="4.5" width="4" height="15" rx="1.2"/><rect x="13.5" y="4.5" width="4" height="15" rx="1.2"/></svg>`;
+
+/* ============================ хранилище ============================ */
+const DB = (() => {
+  let p;
+  const open = () => p || (p = new Promise((res, rej) => {
+    const r = indexedDB.open('reader', 1);
+    r.onupgradeneeded = () => { const d = r.result; d.createObjectStore('meta', { keyPath: 'id' }); d.createObjectStore('books', { keyPath: 'id' }); d.createObjectStore('blobs'); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+  const tx = async (store, mode, fn) => {
+    const d = await open();
+    return new Promise((res, rej) => {
+      const t = d.transaction(store, mode); const o = t.objectStore(store); const r = fn(o);
+      t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  };
+  return {
+    put: (s, v, k) => tx(s, 'readwrite', o => k === undefined ? o.put(v) : o.put(v, k)),
+    get: (s, k) => tx(s, 'readonly', o => o.get(k)),
+    all: s => tx(s, 'readonly', o => o.getAll()),
+    del: (s, k) => tx(s, 'readwrite', o => o.delete(k)),
+    delRange: (s, a, b) => tx(s, 'readwrite', o => o.delete(IDBKeyRange.bound(a, b)))
+  };
+})();
+
+/* ============================ состояние ============================ */
+const audio = new Audio(); audio.preload = 'metadata';
+let S = Object.assign({ theme: 'paper', font: 'literata', size: 19, spacing: 1.65, pages: 'auto', hl: true, follow: true, speed: 1, margin: 'normal', awake: false, syncOn: false }, LS.get('settings', {}));
+let META = [];          // список книг (лёгкие данные)
+const COV = {};         // id -> URL обложки
+let cur = null;         // открытая книга {meta, data, pos}
+let routeName = 'lib';
+let tocTab = 'toc';
+
+function applySettings() {
+  document.documentElement.dataset.theme = S.theme;
+  const r = document.documentElement.style;
+  r.setProperty('--rd-size', S.size + 'px');
+  r.setProperty('--rd-lh', S.spacing);
+  r.setProperty('--rd-font', { literata: 'var(--serif)', georgia: "Georgia,'Noto Serif',serif", sans: 'var(--ui)' }[S.font] || 'var(--serif)');
+  audio.defaultPlaybackRate = S.speed; audio.playbackRate = S.speed;
+  LS.set('settings', S);
+  syncBars();
+  applyAwake();
+}
+let wakeSentinel = null;
+async function applyAwake() {
+  const on = !!S.awake && !document.hidden;
+  try { if (window.AndroidBars && window.AndroidBars.keepOn) { window.AndroidBars.keepOn(on); return; } } catch (e) {}
+  try {
+    if (on && navigator.wakeLock && !wakeSentinel) { wakeSentinel = await navigator.wakeLock.request('screen'); wakeSentinel.addEventListener('release', () => { wakeSentinel = null; }); }
+    else if (!on && wakeSentinel) { await wakeSentinel.release(); wakeSentinel = null; }
+  } catch (e) {}
+}
+const FMT_OK = { I: 1, B: 1, EM: 1, STRONG: 1, SUB: 1, SUP: 1, S: 1 };
+function safeHtml(src) {   // только курсив/жирный/индексы, остальное превращается в обычный текст
+  const t = document.createElement('template'); t.innerHTML = src;
+  (function walk(n) {
+    [...n.childNodes].forEach(ch => {
+      if (ch.nodeType === 1) {
+        if (!FMT_OK[ch.tagName]) ch.replaceWith(document.createTextNode(ch.textContent));
+        else { [...ch.attributes].forEach(a => ch.removeAttribute(a.name)); walk(ch); }
+      }
+    });
+  })(t.content);
+  return t.innerHTML;
+}
+function syncBars() {
+  try {
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    const dark = S.theme === 'graphite' || S.theme === 'night';
+    if (window.AndroidBars && bg) window.AndroidBars.set(bg, dark);
+    if (window.AndroidMedia && window.AndroidMedia.theme) {
+      const v = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+      window.AndroidMedia.theme(bg, v('--chip'), v('--ink'), v('--muted'), v('--accent'), v('--accent-ink'));
+    }
+    const mt = document.querySelector('meta[name=theme-color]'); if (mt && bg) mt.setAttribute('content', bg);
+  } catch (e) {}
+}
+
+const hasAudio = () => !!cur && cur.data.chapters.some(c => c.audio);
+const hasText = () => !!cur && cur.data.chapters.some(c => c.paragraphs && c.paragraphs.length);
+const lastOf = m => LS.get('last:' + m.id, 0) || m.added || 0;
+const pctOf = m => LS.get('pct:' + m.id, 0) || 0;
+
+function getPos(id) { return Object.assign({ ch: 0, p: 0, t: 0, f: 0, src: 'audio', pk: null, pkc: -1 }, LS.get('pos:' + id, {})); }
+function savePos() {
+  if (!cur) return;
+  const n = cur.data.chapters.length, c = cur.data.chapters[cur.pos.ch];
+  let f = 0;
+  if (cur.pos.src === 'audio' && audioBook === cur.meta.id && audioCh === cur.pos.ch && audio.duration > 0) f = cur.pos.t / audio.duration;
+  else if (c && c.paragraphs && c.paragraphs.length) f = cur.pos.p / c.paragraphs.length;
+  cur.pos.f = f;
+  const sig = posSig(cur.pos);
+  if (cur._sig !== sig) { cur._sig = sig; cur.pos.u = Date.now(); }   // u: когда позиция реально менялась
+  LS.set('pos:' + cur.meta.id, cur.pos);
+  LS.set('pct:' + cur.meta.id, Math.min(1, (cur.pos.ch + f) / Math.max(1, n)));
+  syncSoon(false);
+}
+const posSig = p => p.ch + '/' + p.p + '/' + Math.round((p.t || 0) / 3);
+
+/* ============================ обложки ============================ */
+async function loadCovers() {
+  for (const m of META) {
+    if (m.hasCover && !COV[m.id]) {
+      try { const b = await DB.get('blobs', m.id + '/cover'); if (b) COV[m.id] = URL.createObjectURL(b); } catch (e) {}
+    }
+  }
+}
+function coverHTML(m, style, badge) {
+  const bg = COV[m.id] ? `background-image:url(${COV[m.id]})` : `background:${GRAD[hash(m.title) % GRAD.length]}`;
+  const deco = COV[m.id] ? '' : '<svg class="deco" viewBox="0 0 100 150" aria-hidden="true"><circle cx="50" cy="62" r="26"/><circle cx="50" cy="62" r="38"/><path d="M12 118h76M12 126h50"/></svg>';
+  const b = badge ? `<div class="badge">${m.type !== 'text' ? ic('head', 13) : ''}${m.type !== 'audio' ? ic('book', 13) : ''}</div>` : '';
+  return `<div class="cover" style="${bg};${style || ''}">${deco}${b}</div>`;
+}
+
+/* ============================ модальные окна, подсказки ============================ */
+function sheet(html) { const m = $('#modal'); m.innerHTML = `<div class="scrim"></div><div class="sheet">${html}</div>`; m.hidden = false; }
+function closeSheet() { const m = $('#modal'); m.hidden = true; m.innerHTML = ''; }
+function choose(title, text, buttons) {
+  return new Promise(res => {
+    sheet(`<h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}${buttons.map((b, i) => `<button class="btn ${b.cls || 'out'}" data-i="${i}">${esc(b.label)}</button>`).join('')}`);
+    $$('#modal button').forEach(btn => btn.onclick = () => { closeSheet(); res(+btn.dataset.i); });
+    $('#modal .scrim').onclick = () => { closeSheet(); res(-1); };
+  });
+}
+function askText(title, value) {
+  return new Promise(res => {
+    sheet(`<h3>${esc(title)}</h3><input id="ask" class="input" value="${esc(value)}"><button class="btn" id="ask-ok">Готово</button><button class="btn grey" id="ask-no">Отмена</button>`);
+    const i = $('#ask'); i.focus(); i.select();
+    $('#ask-ok').onclick = () => { const v = i.value.trim(); closeSheet(); res(v || value); };
+    $('#ask-no').onclick = () => { closeSheet(); res(null); };
+  });
+}
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2800); }
+
+/* ============================ маршрутизация ============================ */
+const SCREENS = {};
+function route() {
+  const name = (location.hash || '#lib').slice(1);
+  if (!SCREENS[name]) return go('lib', true);
+  if (['player', 'reader', 'toc'].includes(name) && !cur) return go('lib', true);
+  if (name === 'player' && !hasAudio()) return go(hasText() ? 'reader' : 'lib', true);
+  if (name === 'reader' && !hasText()) return go(hasAudio() ? 'player' : 'lib', true);
+  routeName = name;
+  $$('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
+  if (name !== 'reader') closeSheet();
+  SCREENS[name]();
+}
+function go(name, replace) {
+  if (replace) { history.replaceState(null, '', '#' + name); route(); }
+  else if (location.hash === '#' + name) route();
+  else location.hash = '#' + name;
+}
+const back = () => history.back();
+// Аппаратная кнопка «назад» на Android: закрыть окно -> вернуться на прошлый экран -> только из библиотеки выйти из приложения
+window.__hwBack = () => {
+  try {
+    const m = $('#modal'); if (m && !m.hidden) { closeSheet(); return true; }
+    if (routeName === 'lib') { if (LIB.search) { LIB.search = false; LIB.q = ''; route(); return true; } return false; }
+    const before = routeName;
+    if (history.length > 1) history.back();
+    setTimeout(() => { if (routeName === before) go('lib', true); }, 350);
+    return true;
+  } catch (e) { return false; }
+};
+window.addEventListener('hashchange', route);
+
+/* ============================ библиотека ============================ */
+const LIB = Object.assign({ sort: 'read', shelf: 'all' }, LS.get('lib', {}));
+LIB.q = ''; LIB.search = false;
+const saveLib = () => LS.set('lib', { sort: LIB.sort, shelf: LIB.shelf });
+let SHELVES = LS.get('shelves', []);      // [{id, name}]
+let SHELF_OF = LS.get('shelfof', {});     // id книги -> id полки
+const saveShelves = () => { LS.set('shelves', SHELVES); LS.set('shelfof', SHELF_OF); };
+const SORTS = { read: 'по дате чтения', added: 'по дате загрузки', title: 'по названию' };
+const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
+const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function visibleBooks() {
+  const q = norm(LIB.q).trim();
+  let l = META.slice();
+  if (LIB.shelf !== 'all') l = l.filter(m => SHELF_OF[m.id] === LIB.shelf);
+  if (q) l = l.filter(m => norm(m.title + ' ' + (m.author || '')).includes(q));
+  const by = {
+    read: (a, b) => lastOf(b) - lastOf(a),
+    added: (a, b) => (b.added || 0) - (a.added || 0),
+    title: (a, b) => String(a.title).localeCompare(String(b.title), 'ru', { numeric: true, sensitivity: 'base' })
+  }[LIB.sort] || ((a, b) => lastOf(b) - lastOf(a));
+  return l.sort(by);
+}
+
+function pressable(el, onLong, onTap) {
+  let timer, fired = false;
+  const stop = () => clearTimeout(timer);
+  el.addEventListener('touchstart', () => { fired = false; if (onLong) timer = setTimeout(() => { fired = true; onLong(); }, 600); }, { passive: true });
+  el.addEventListener('touchmove', stop, { passive: true });
+  el.addEventListener('touchend', stop); el.addEventListener('touchcancel', stop);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+  el.addEventListener('click', () => { if (fired) { fired = false; return; } onTap(); });
+}
+
+SCREENS.lib = function renderLib() {
+  if (LIB.shelf !== 'all' && !SHELVES.some(s => s.id === LIB.shelf)) LIB.shelf = 'all';
+  const chips = `<button class="chip ${LIB.shelf === 'all' ? 'on' : ''}" data-shelf="all">Все</button>`
+    + SHELVES.map(s => `<button class="chip ${LIB.shelf === s.id ? 'on' : ''}" data-shelf="${s.id}">${esc(s.name)}</button>`).join('')
+    + `<button class="chip add" id="shelf-new">${ic('plus', 16)}Полка</button>`;
+  $('#s-lib').innerHTML = `
+    <div class="scr-pad lib-head"><h1>Библиотека</h1><div style="display:flex;gap:6px;align-items:center"><button class="iconbtn" id="lib-find" aria-label="Поиск">${ic('search', 24)}</button><button class="iconbtn" id="lib-cat" aria-label="Каталог">${ic('cloudd', 24)}</button><button class="fab" id="lib-add" aria-label="Добавить книгу">${ic('plus', 24)}</button></div></div>
+    <div class="lib-search" id="lib-sbox" style="display:${LIB.search ? 'block' : 'none'}"><input id="lib-q" class="input" type="search" placeholder="Название или автор" value="${esc(LIB.q)}" autocomplete="off"></div>
+    <div class="chips" id="lib-chips">${chips}</div>
+    <div class="scroll" id="lib-scroll"></div>`;
+  $('#lib-add').onclick = () => go('add');
+  $('#lib-cat').onclick = () => go('catalog');
+  $('#lib-find').onclick = () => {
+    LIB.search = !LIB.search;
+    if (!LIB.search) LIB.q = '';
+    SCREENS.lib();
+    if (LIB.search) { const i = $('#lib-q'); if (i) i.focus(); }
+  };
+  $('#lib-q').addEventListener('input', e => { LIB.q = e.target.value; fillLib(); });
+  $$('.chip[data-shelf]').forEach(b => {
+    const id = b.dataset.shelf;
+    pressable(b, id === 'all' ? null : () => shelfMenu(id), () => { LIB.shelf = id; saveLib(); SCREENS.lib(); });
+  });
+  $('#shelf-new').onclick = async () => { const s = await newShelf(); if (s) { LIB.shelf = s.id; saveLib(); SCREENS.lib(); } };
+  fillLib();
+};
+
+function fillLib() {
+  const box = $('#lib-scroll'); if (!box) return;
+  const all = META.slice().sort((a, b) => lastOf(b) - lastOf(a));
+  const list = visibleBooks();
+  const last = all[0];
+  const q = LIB.q.trim();
+  let cont = '';
+  if (last && !q && LIB.shelf === 'all') {
+    const pct = Math.round(pctOf(last) * 100);
+    const n = last.chapters;
+    const ch = getPos(last.id).ch + 1;
+    cont = `<div class="card cont">
+      <div style="width:96px;flex:none">${coverHTML(last, 'width:96px;height:144px')}</div>
+      <div class="info">
+        <div class="label">Продолжить</div>
+        <div style="font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.2;margin-top:4px">${esc(last.title)}</div>
+        ${last.author ? `<div class="muted" style="font-size:14px;margin-top:2px">${esc(last.author)}</div>` : ''}
+        <div class="muted" style="font-size:13px;margin-top:10px">Глава ${ch} из ${n} · ${pct}%</div>
+        <div class="bar4" style="margin-top:6px"><i style="width:${pct}%"></i></div>
+        <div class="btns">
+          ${last.type !== 'text' ? `<button class="btn sm" data-open="${last.id}" data-mode="player">${ic('head', 18)}Слушать</button>` : ''}
+          ${last.type !== 'audio' ? `<button class="btn sm ${last.type === 'combo' ? 'out' : ''}" data-open="${last.id}" data-mode="reader">${ic('book', 18)}Читать</button>` : ''}
+        </div>
+      </div></div>`;
+  }
+  const tiles = list.map(m => `<button class="tile" data-id="${m.id}">${coverHTML(m, 'aspect-ratio:2/3', true)}<div class="trow"><div class="t">${esc(m.title)}</div><span class="pc">${Math.round(pctOf(m) * 100)}%</span></div><div class="bar4"><i style="width:${Math.round(pctOf(m) * 100)}%"></i></div></button>`).join('');
+  const shelf = SHELVES.find(s => s.id === LIB.shelf);
+  let note = '';
+  if (!META.length) note = '<div class="empty">Пока здесь пусто.<br>Нажмите «+», чтобы добавить первую книгу.</div>';
+  else if (q && !list.length) note = `<div class="empty">Ничего не найдено по запросу «${esc(q)}»${shelf ? `<br>на полке «${esc(shelf.name)}»` : ''}.</div>`;
+  else if (shelf && !list.length) note = '<div class="empty">На этой полке пока пусто.<br>Зажмите книгу и выберите «Переместить на полку».</div>';
+  box.innerHTML = `
+    ${cont}
+    ${META.length ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${cont ? 20 : 4}px"><h2 style="font-size:17px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(shelf ? shelf.name : 'Все книги')}</h2><button class="sortbtn" id="lib-sort">${SORTS[LIB.sort]}${ic('down', 14)}</button></div>` : ''}
+    <div class="grid">${tiles}${q ? '' : `<button class="tile add" id="lib-add2" aria-label="Добавить книгу">${ic('plus', 26)}Добавить</button>`}</div>
+    ${note}`;
+  if ($('#lib-add2')) $('#lib-add2').onclick = () => go('add');
+  if ($('#lib-sort')) $('#lib-sort').onclick = sortMenu;
+  $$('[data-open]', box).forEach(b => b.onclick = () => openBook(b.dataset.open, b.dataset.mode));
+  $$('.tile[data-id]', box).forEach(t => pressable(t, () => bookMenu(t.dataset.id), () => openBook(t.dataset.id)));
+}
+
+async function sortMenu() {
+  const keys = Object.keys(SORTS);
+  const btns = keys.map(k => ({ label: (LIB.sort === k ? '✓ ' : '') + cap1(SORTS[k]), cls: LIB.sort === k ? '' : 'out' })).concat([{ label: 'Отмена', cls: 'grey' }]);
+  const r = await choose('Сортировка', '', btns);
+  if (r >= 0 && r < keys.length) { LIB.sort = keys[r]; saveLib(); fillLib(); }
+}
+
+async function newShelf() {
+  const name = await askText('Название полки', '');
+  if (!name) return null;
+  const s = { id: newId(), name: name.slice(0, 40) };
+  SHELVES.push(s); saveShelves();
+  return s;
+}
+async function shelfMenu(id) {
+  const s = SHELVES.find(x => x.id === id); if (!s) return;
+  const r = await choose('Полка «' + s.name + '»', '', [{ label: 'Переименовать', cls: '' }, { label: 'Удалить полку', cls: 'danger' }, { label: 'Отмена', cls: 'grey' }]);
+  if (r === 0) {
+    const n = await askText('Название полки', s.name);
+    if (n) { s.name = n.slice(0, 40); saveShelves(); SCREENS.lib(); }
+  } else if (r === 1) {
+    const r2 = await choose('Удалить полку?', 'Книги останутся в библиотеке, в разделе «Все».', [{ label: 'Удалить полку', cls: 'danger' }, { label: 'Отмена', cls: 'grey' }]);
+    if (r2 === 0) {
+      SHELVES = SHELVES.filter(x => x.id !== id);
+      Object.keys(SHELF_OF).forEach(k => { if (SHELF_OF[k] === id) delete SHELF_OF[k]; });
+      if (LIB.shelf === id) LIB.shelf = 'all';
+      saveShelves(); saveLib(); SCREENS.lib();
+    }
+  }
+}
+async function moveToShelf(id) {
+  const now = SHELF_OF[id] || null;
+  const acts = [{ label: (!now ? '✓ ' : '') + 'Без полки', cls: 'out', set: null }]
+    .concat(SHELVES.map(s => ({ label: (now === s.id ? '✓ ' : '') + s.name, cls: 'out', set: s.id })))
+    .concat([{ label: 'Новая полка…', cls: '', neu: true }, { label: 'Отмена', cls: 'grey', no: true }]);
+  const r = await choose('На какую полку?', '', acts);
+  if (r < 0 || acts[r].no) return;
+  let target = acts[r].set;
+  if (acts[r].neu) { const s = await newShelf(); if (!s) return; target = s.id; }
+  if (target) SHELF_OF[id] = target; else delete SHELF_OF[id];
+  saveShelves();
+  SCREENS.lib();
+  toast(target ? 'Книга перемещена на полку' : 'Книга снята с полки');
+}
+async function bookMenu(id) {
+  const m = META.find(x => x.id === id); if (!m) return;
+  const r = await choose(m.title, '', [{ label: 'Переместить на полку', cls: '' }, { label: 'Удалить с телефона', cls: 'danger' }, { label: 'Отмена', cls: 'grey' }]);
+  if (r === 0) await moveToShelf(id);
+  else if (r === 1) {
+    const r2 = await choose('Удалить книгу?', 'Книга будет удалена с этого телефона. Исходные файлы на компьютере и на диске останутся.', [{ label: 'Удалить', cls: 'danger' }, { label: 'Отмена', cls: 'grey' }]);
+    if (r2 === 0) await deleteBook(id);
+  }
+}
+async function deleteBook(id) {
+  if (cur && cur.meta.id === id) { audio.pause(); audioBook = null; audioCh = -1; cur = null; if (NM) { try { NM.clear(); } catch (e) {} } }
+  try { await DB.delRange('blobs', id + '/', id + '/\uffff'); await DB.del('books', id); await DB.del('meta', id); } catch (e) {}
+  META = META.filter(m => m.id !== id);
+  ['pos:', 'bm:', 'pct:', 'last:', 'mode:'].forEach(k => LS.del(k + id));
+  if (SHELF_OF[id]) { delete SHELF_OF[id]; saveShelves(); }
+  if (COV[id]) { URL.revokeObjectURL(COV[id]); delete COV[id]; }
+  toast('Книга удалена'); SCREENS.lib();
+}
+
+async function openBook(id, mode) {
+  const meta = META.find(m => m.id === id); if (!meta) return;
+  if (!cur || cur.meta.id !== id) {
+    if (audioBook !== id) { audio.pause(); audioBook = null; audioCh = -1; }
+    let data;
+    try { data = await DB.get('books', id); } catch (e) {}
+    if (!data) { toast('Не удалось открыть книгу'); return; }
+    cur = { meta, data, pos: getPos(id) };
+    cur._sig = posSig(cur.pos);
+    if (cur.pos.ch >= data.chapters.length) { cur.pos.ch = 0; cur.pos.p = 0; cur.pos.t = 0; }
+  }
+  LS.set('last:' + id, Date.now());
+  if (!mode) mode = LS.get('mode:' + id, null);
+  if (mode === 'player' && !hasAudio()) mode = null;
+  if (mode === 'reader' && !hasText()) mode = null;
+  if (!mode) mode = hasText() ? 'reader' : 'player';
+  go(mode);
+  syncOnOpen();
+}
+
+/* ============================ добавление книги ============================ */
+SCREENS.add = function renderAdd() {
+  $('#s-add').innerHTML = `
+    <div class="scr-pad"><div class="top" style="justify-content:flex-start;margin-left:-12px"><button class="iconbtn" id="add-x" aria-label="Закрыть">${ic('close', 24)}</button><div class="ttl" style="margin-left:4px">Добавить книгу</div></div></div>
+    <div class="scroll">
+      <div class="label" style="margin-top:8px">Откуда</div>
+      <button class="src" id="add-phone"><div class="ico">${ic('folder', 26)}</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:16px">Память телефона</div><div class="muted" style="font-size:13px;margin-top:2px">Выберите файлы книги</div></div>${ic('right', 20)}</button>
+      <button class="src" id="add-ya"><div class="ico">${ic('cloud', 26)}</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:16px">Яндекс Диск</div><div class="muted" style="font-size:13px;margin-top:2px">Каталог книг по ссылке на папку</div></div>${ic('right', 20)}</button>
+      <div class="label" style="margin-top:24px">Что можно добавить</div>
+      <div class="kind"><div class="pill">${ic('head', 16)}${ic('book', 16)}</div><div><div style="font-weight:600;font-size:15px">Комбо</div><div class="muted" style="font-size:13px;margin-top:2px;line-height:1.35">Текст и звук вместе, собранные конструктором. Выберите один файл с расширением .book. Старый способ тоже работает: файлы book.json, meta.json, обложка и все mp3.</div></div></div>
+      <div class="kind"><div class="pill">${ic('head', 16)}</div><div><div style="font-weight:600;font-size:15px">Только аудио</div><div class="muted" style="font-size:13px;margin-top:2px;line-height:1.35">Несколько файлов mp3 или m4b. Каждый файл станет главой. Можно добавить картинку для обложки.</div></div></div>
+      <div class="kind" style="border:0"><div class="pill">${ic('book', 16)}</div><div><div style="font-weight:600;font-size:15px">Только текст</div><div class="muted" style="font-size:13px;margin-top:2px;line-height:1.35">Книга в формате FB2. EPUB появится позже.</div></div></div>
+      <p class="muted" style="font-size:12px;text-align:center;margin-top:18px;line-height:1.4">Всё копируется в приложение и потом работает без интернета</p>
+    </div>`;
+  $('#add-x').onclick = back;
+  $('#add-phone').onclick = () => { pending.map.clear(); $('#pick').click(); };
+  $('#add-ya').onclick = () => go('catalog');
+};
+
+const pending = { map: new Map() };
+$('#pick').addEventListener('change', async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  if (!files.length) return;
+  files.forEach(f => pending.map.set(f.name.toLowerCase(), f));
+  await analyzePending();
+});
+
+async function analyzePending() {
+  const files = [...pending.map.values()];
+  const by = re => files.filter(f => re.test(f.name));
+  const bj = by(/^book\.json$/i)[0];
+  const fb2 = by(/\.fb2$/i)[0];
+  const aud = by(/\.(mp3|m4a|m4b|aac|ogg|opus|wav|flac)$/i).sort((a, b) => natCmp(a.name, b.name));
+  const img = by(/\.(jpe?g|png|webp)$/i);
+  const meta = by(/^meta\.json$/i)[0];
+  const bk = by(/\.book$/i)[0];
+  try {
+    if (bk) {
+      pending.map.clear();
+      await importBookFile(bk);
+    } else if (bj) {
+      const chapters = JSON.parse(await bj.text());
+      if (!Array.isArray(chapters) || !chapters.length) throw new Error('Файл book.json пустой или повреждён');
+      const need = [...new Set(chapters.map(c => basename(c.audio)).filter(Boolean))];
+      const missing = need.filter(n => !pending.map.has(n.toLowerCase()));
+      if (missing.length) {
+        const r = await choose('Не хватает звука', `Нужно ещё файлов: ${missing.length} (${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}). Выберите их, обычно они лежат в папке audio рядом с книгой.`, [{ label: 'Выбрать файлы', cls: '' }, { label: 'Отмена', cls: 'grey' }]);
+        if (r === 0) $('#pick').click(); else pending.map.clear();
+        return;
+      }
+      await importCombo(chapters, meta, img);
+    } else if (fb2) {
+      await importText(fb2, img, aud.length > 0);
+    } else if (aud.length) {
+      await importAudio(aud, img);
+    } else {
+      pending.map.clear();
+      await choose('Не нашёл книгу', 'Среди выбранных файлов нет FB2, mp3 или book.json.', [{ label: 'Понятно' }]);
+    }
+  } catch (e) {
+    pending.map.clear();
+    failImport(e && e.message ? e.message : String(e));
+  }
+}
+
+SCREENS.import = function () {};
+function showImport(title) {
+  go('import', true);
+  $('#s-import').innerHTML = `
+    <div class="scr-pad"><div class="top"><div class="ttl">Добавляем книгу</div></div></div>
+    <div class="scroll"><div class="card" style="margin-top:10px"><div style="font-family:var(--serif);font-weight:600;font-size:18px">${esc(title)}</div><div class="muted" id="imp-msg" style="font-size:14px;margin-top:6px">Подготовка…</div><div class="bar4" style="height:6px;margin-top:14px"><i id="imp-bar" style="height:6px;width:0"></i></div></div>
+    <p class="muted" style="font-size:12px;margin-top:14px;line-height:1.4">Большие аудиофайлы копируются несколько минут. Не закрывайте приложение.</p></div>`;
+}
+function setImport(done, total, msg) { const b = $('#imp-bar'); if (b) b.style.width = Math.round(100 * done / Math.max(1, total)) + '%'; const m = $('#imp-msg'); if (m) m.textContent = msg; }
+function failImport(msg) {
+  go('import', true);
+  $('#s-import').innerHTML = `
+    <div class="scr-pad"><div class="top"><div class="ttl">Не получилось</div></div></div>
+    <div class="scroll"><div class="card" style="margin-top:10px"><p style="line-height:1.45">${esc(msg)}</p></div><button class="btn" style="margin-top:16px" id="imp-back">К библиотеке</button></div>`;
+  $('#imp-back').onclick = () => go('lib', true);
+}
+async function finishImport(meta, data, extraNote) {
+  await DB.put('books', data); await DB.put('meta', meta);
+  META.push(meta);
+  if (meta.hasCover) await loadCovers();
+  LS.set('last:' + meta.id, Date.now());
+  if (LIB.shelf !== 'all') { SHELF_OF[meta.id] = LIB.shelf; saveShelves(); }
+  pending.map.clear();
+  go('lib', true);
+  toast('Добавлено: ' + meta.title + (extraNote ? '. ' + extraNote : ''));
+}
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+function pickCover(img, preferName) {
+  if (!img.length) return null;
+  if (preferName) { const f = img.find(x => x.name.toLowerCase() === String(preferName).toLowerCase()); if (f) return f; }
+  return img.find(x => /cover|обложк/i.test(x.name)) || img[0];
+}
+async function cleanup(id) { try { await DB.delRange('blobs', id + '/', id + '/\uffff'); } catch (e) {} }
+function quotaMsg(e) { return e && /quota/i.test(e.name + ' ' + e.message) ? 'Не хватает места на телефоне. Освободите память и попробуйте снова.' : (e && e.message) || String(e); }
+
+async function importCombo(chaptersRaw, metaFile, img) {
+  let m = {};
+  try { if (metaFile) m = JSON.parse(await metaFile.text()); } catch (e) {}
+  const title = clean(m.title) || 'Книга';
+  showImport(title);
+  const id = newId();
+  try {
+    const names = [...new Set(chaptersRaw.map(c => basename(c.audio)).filter(Boolean))];
+    const cover = pickCover(img, m.cover);
+    const total = names.length + (cover ? 1 : 0);
+    let done = 0;
+    if (cover) { await DB.put('blobs', cover, id + '/cover'); setImport(++done, total, 'Обложка'); }
+    for (const n of names) {
+      await DB.put('blobs', pending.map.get(n.toLowerCase()), id + '/a/' + n);
+      setImport(++done, total, `Звук: файл ${done - (cover ? 1 : 0)} из ${names.length}`);
+    }
+    const chapters = chaptersRaw.map((c, i) => ({ title: clean(c.title) || 'Глава ' + (i + 1), paragraphs: c.paragraphs || [], starts: c.starts || [], html: c.html || [], audio: basename(c.audio) || null }));
+    await finishImport({ id, type: 'combo', title, author: clean(m.author), hasCover: !!cover, chapters: chapters.length, added: Date.now() }, { id, chapters });
+  } catch (e) { await cleanup(id); throw new Error(quotaMsg(e)); }
+}
+
+/* ---- файл .book: ZIP без сжатия, читаем кусками прямо с телефона ---- */
+async function readZipDir(file) {
+  const size = file.size;
+  const tailLen = Math.min(size, 70000);
+  const tail = new DataView(await file.slice(size - tailLen, size).arrayBuffer());
+  let p = -1;
+  for (let i = tailLen - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50) { p = i; break; }
+  if (p < 0) throw new Error('Это не файл книги .book (или он не дозагрузился).');
+  let total = tail.getUint16(p + 10, true), cdSize = tail.getUint32(p + 12, true), cdOff = tail.getUint32(p + 16, true);
+  if (cdOff === 0xFFFFFFFF || cdSize === 0xFFFFFFFF || total === 0xFFFF) {
+    const lp = p - 20;
+    if (lp < 0 || tail.getUint32(lp, true) !== 0x07064b50) throw new Error('Файл книги повреждён.');
+    const off64 = Number(tail.getBigUint64(lp + 8, true));
+    const d = new DataView(await file.slice(off64, off64 + 56).arrayBuffer());
+    if (d.getUint32(0, true) !== 0x06064b50) throw new Error('Файл книги повреждён.');
+    cdSize = Number(d.getBigUint64(40, true)); cdOff = Number(d.getBigUint64(48, true));
+  }
+  const cd = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer());
+  const u8 = new Uint8Array(cd.buffer);
+  const dec = new TextDecoder('utf-8');
+  const out = [];
+  let o = 0;
+  while (o + 46 <= cd.byteLength && cd.getUint32(o, true) === 0x02014b50) {
+    const method = cd.getUint16(o + 10, true);
+    let csize = cd.getUint32(o + 20, true), usize = cd.getUint32(o + 24, true), lho = cd.getUint32(o + 42, true);
+    const nl = cd.getUint16(o + 28, true), el = cd.getUint16(o + 30, true), cl = cd.getUint16(o + 32, true);
+    const name = dec.decode(u8.subarray(o + 46, o + 46 + nl));
+    let q = o + 46 + nl; const end = q + el;
+    while (q + 4 <= end) {
+      const id = cd.getUint16(q, true), sz = cd.getUint16(q + 2, true);
+      if (id === 1) {
+        let r = q + 4;
+        if (usize === 0xFFFFFFFF) { usize = Number(cd.getBigUint64(r, true)); r += 8; }
+        if (csize === 0xFFFFFFFF) { csize = Number(cd.getBigUint64(r, true)); r += 8; }
+        if (lho === 0xFFFFFFFF) { lho = Number(cd.getBigUint64(r, true)); r += 8; }
+      }
+      q += 4 + sz;
+    }
+    if (!name.endsWith('/')) out.push({ name, base: basename(name).toLowerCase(), method, csize, usize, lho });
+    o += 46 + nl + el + cl;
+  }
+  return out;
+}
+async function zipSlice(file, e, type) {
+  const h = new DataView(await file.slice(e.lho, e.lho + 30).arrayBuffer());
+  if (h.getUint32(0, true) !== 0x04034b50) throw new Error('Файл книги повреждён.');
+  const start = e.lho + 30 + h.getUint16(26, true) + h.getUint16(28, true);
+  return file.slice(start, start + e.csize, type || '');
+}
+async function zipText(file, e) {
+  const b = await zipSlice(file, e);
+  if (e.method === 0) return b.text();
+  if (e.method === 8 && typeof DecompressionStream !== 'undefined') return new Response(b.stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  throw new Error('Файл книги упакован неподдерживаемым способом.');
+}
+const MIME = { mp3: 'audio/mpeg', m4a: 'audio/mp4', m4b: 'audio/mp4', aac: 'audio/aac', ogg: 'audio/ogg', opus: 'audio/ogg', wav: 'audio/wav', flac: 'audio/flac', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+const mimeOf = n => MIME[String(n).split('.').pop().toLowerCase()] || '';
+/* название и номер части из имени файла: «05. Автор – Название.mp3» -> номер 5, название «Автор – Название» */
+function partInfo(fname, i) {
+  const base = String(fname).replace(/\.[^.]+$/, '');
+  const m = base.match(/^\s*(\d{1,4})(?=[\s._\-–—)]|$)/);
+  const title = base.replace(/^[\s\d._\-–—)]+/, '').trim() || 'Часть ' + (i + 1);
+  const o = { title };
+  if (m && +m[1] > 0) o.num = +m[1];
+  return o;
+}
+
+async function importBookFile(file, srcKey) {
+  const ents = await readZipDir(file);
+  const by = new Map(ents.map(e => [e.base, e]));
+  const bj = by.get('book.json');
+  if (!bj) throw new Error('В файле нет book.json: это не книга из конструктора.');
+  const chaptersRaw = JSON.parse(await zipText(file, bj));
+  if (!Array.isArray(chaptersRaw) || !chaptersRaw.length) throw new Error('Файл книги пустой или повреждён.');
+  let m = {};
+  const me = by.get('meta.json');
+  if (me) { try { m = JSON.parse(await zipText(file, me)); } catch (e) {} }
+  const names = [...new Set(chaptersRaw.map(c => basename(c.audio)).filter(Boolean))];
+  const missing = names.filter(n => !by.has(n.toLowerCase()));
+  if (missing.length) throw new Error('В файле книги не хватает звука: ' + missing.length + ' файл(ов), например ' + missing.slice(0, 3).join(', ') + '.');
+  let coverEnt = m.cover ? by.get(basename(m.cover).toLowerCase()) : null;
+  if (!coverEnt) coverEnt = ents.find(e => /\.(jpe?g|png|webp)$/i.test(e.name)) || null;
+  const title = clean(m.title) || String(file.name || '').replace(/\.book$/i, '') || 'Книга';
+  showImport(title);
+  const id = newId();
+  try {
+    const total = names.length + (coverEnt ? 1 : 0);
+    let done = 0;
+    if (coverEnt) { await DB.put('blobs', await zipSlice(file, coverEnt, mimeOf(coverEnt.name)), id + '/cover'); setImport(++done, total, 'Обложка'); }
+    for (const n of names) {
+      const e = by.get(n.toLowerCase());
+      await DB.put('blobs', await zipSlice(file, e, mimeOf(n) || 'audio/mpeg'), id + '/a/' + n);
+      setImport(++done, total, `Звук: файл ${done - (coverEnt ? 1 : 0)} из ${names.length}`);
+    }
+    const chapters = chaptersRaw.map((c, i) => ({ title: clean(c.title) || 'Глава ' + (i + 1), paragraphs: c.paragraphs || [], starts: c.starts || [], html: c.html || [], audio: basename(c.audio) || null }));
+    await finishImport({ id, type: 'combo', title, author: clean(m.author), hasCover: !!coverEnt, chapters: chapters.length, added: Date.now(), src: srcKey || null }, { id, chapters });
+  } catch (e) { await cleanup(id); throw new Error(quotaMsg(e)); }
+}
+
+async function importText(file, img, hadAudio) {
+  showImport(file.name.replace(/\.fb2$/i, ''));
+  const id = newId();
+  try {
+    setImport(0, 3, 'Читаю книгу…');
+    const b = await parseFB2(file);
+    if (!b.chapters.length) throw new Error('В этом FB2 не нашлось текста.');
+    const title = b.title || file.name.replace(/\.fb2$/i, '');
+    let cover = pickCover(img), hasCover = false;
+    if (cover) { await DB.put('blobs', cover, id + '/cover'); hasCover = true; }
+    else if (b.cover) { await DB.put('blobs', b.cover, id + '/cover'); hasCover = true; }
+    setImport(2, 3, 'Сохраняю…');
+    await finishImport({ id, type: 'text', title, author: b.author, hasCover, chapters: b.chapters.length, added: Date.now() }, { id, chapters: b.chapters }, hadAudio ? 'звук не добавлен: сначала склейте его с текстом в конструкторе' : '');
+  } catch (e) { await cleanup(id); throw new Error(quotaMsg(e)); }
+}
+
+function audioDuration(file) {
+  return new Promise(res => {
+    const a = new Audio(); a.preload = 'metadata'; const u = URL.createObjectURL(file);
+    const done = d => { clearTimeout(t); URL.revokeObjectURL(u); res(d); };
+    const t = setTimeout(() => done(0), 5000);
+    a.onloadedmetadata = () => done(isFinite(a.duration) ? a.duration : 0);
+    a.onerror = () => done(0);
+    a.src = u;
+  });
+}
+async function importAudio(files, img) {
+  let def = files.length > 1 ? 'Аудиокнига' : files[0].name.replace(/\.[^.]+$/, '').replace(/^[\s\d._\-–—)]+/, '') || 'Аудиокнига';
+  const title = await askText('Название книги', def);
+  if (!title) { pending.map.clear(); return; }
+  showImport(title);
+  const id = newId();
+  try {
+    const cover = pickCover(img);
+    const total = files.length + (cover ? 1 : 0);
+    let done = 0;
+    if (cover) { await DB.put('blobs', cover, id + '/cover'); setImport(++done, total, 'Обложка'); }
+    const chapters = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const key = String(i + 1).padStart(3, '0') + '_' + f.name;
+      await DB.put('blobs', f, id + '/a/' + key);
+      const dur = await audioDuration(f);
+      chapters.push({ ...partInfo(f.name, i), audio: key, dur });
+      setImport(++done, total, `Звук: файл ${i + 1} из ${files.length}`);
+    }
+    await finishImport({ id, type: 'audio', title, author: '', hasCover: !!cover, chapters: chapters.length, added: Date.now() }, { id, chapters });
+  } catch (e) { await cleanup(id); throw new Error(quotaMsg(e)); }
+}
+
+/* ============================ разбор FB2 ============================ */
+async function parseFB2(file) {
+  const buf = await file.arrayBuffer();
+  const head = new TextDecoder('latin1').decode(new Uint8Array(buf, 0, Math.min(300, buf.byteLength)));
+  const mm = head.match(/encoding=["']([\w-]+)["']/i);
+  let txt; try { txt = new TextDecoder(mm ? mm[1].toLowerCase() : 'utf-8').decode(buf); } catch (e) { txt = new TextDecoder('utf-8').decode(buf); }
+  const doc = new DOMParser().parseFromString(txt, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error('Не удалось прочитать файл FB2. Возможно, он повреждён.');
+  const ln = e => e.localName;
+  const tag = (root, n) => root.getElementsByTagNameNS('*', n);
+  const ti = tag(doc, 'title-info')[0];
+  const title = ti && tag(ti, 'book-title')[0] ? clean(tag(ti, 'book-title')[0].textContent) : '';
+  let author = '';
+  const au = ti && tag(ti, 'author')[0];
+  if (au) author = ['first-name', 'middle-name', 'last-name'].map(n => tag(au, n)[0] ? clean(tag(au, n)[0].textContent) : '').filter(Boolean).join(' ');
+  let cover = null;
+  try {
+    const cp = ti && tag(ti, 'coverpage')[0]; const im = cp && tag(cp, 'image')[0];
+    if (im) {
+      const href = [...im.attributes].find(a => a.localName === 'href');
+      const id = href ? href.value.replace(/^#/, '') : '';
+      const bin = [...tag(doc, 'binary')].find(b => b.getAttribute('id') === id);
+      if (bin) {
+        const raw = atob(bin.textContent.replace(/\s/g, '')); const u8 = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) u8[i] = raw.charCodeAt(i);
+        cover = new Blob([u8], { type: bin.getAttribute('content-type') || 'image/jpeg' });
+      }
+    }
+  } catch (e) {}
+  const secs = [];
+  const collect = sec => {
+    let t = ''; const paras = [];
+    const walk = el => {
+      for (const c of el.children) {
+        const n = ln(c);
+        if (n === 'title') { const x = [...tag(c, 'p')].map(p => clean(p.textContent)).filter(Boolean).join(' ') || clean(c.textContent); if (el === sec) t = x; else if (x) paras.push(x); }
+        else if (n === 'section') continue;
+        else if (n === 'p' || n === 'v' || n === 'subtitle' || n === 'text-author') { const x = clean(c.textContent); if (x) paras.push(x); }
+        else if (n === 'empty-line' || n === 'image') continue;
+        else walk(c);
+      }
+    };
+    walk(sec);
+    secs.push({ title: t, paras });
+    for (const c of sec.children) if (ln(c) === 'section') collect(c);
+  };
+  for (const body of doc.documentElement.children) {
+    if (ln(body) !== 'body' || body.getAttribute('name')) continue;
+    for (const c of body.children) if (ln(c) === 'section') collect(c);
+  }
+  const chapters = []; let carry = [];
+  for (const s of secs) {
+    if (!s.paras.length) continue;
+    if (!s.title) { carry = carry.concat(s.paras); continue; }
+    chapters.push({ title: s.title, paragraphs: carry.concat(s.paras) }); carry = [];
+  }
+  if (carry.length) { if (chapters.length) chapters[chapters.length - 1].paragraphs = chapters[chapters.length - 1].paragraphs.concat(carry); else chapters.push({ title: title || 'Текст', paragraphs: carry }); }
+  chapters.forEach((c, i) => { if (!c.title) c.title = 'Глава ' + (i + 1); });
+  return { title, author, cover, chapters };
+}
+
+/* ============================ звук ============================ */
+let audioUrl = null, audioCh = -1, audioBook = null, lastSave = 0;
+function paraAt(starts, t) {
+  let lo = 0, hi = starts.length - 1, ans = 0;
+  while (lo <= hi) { const mid = (lo + hi) >> 1; if (starts[mid] <= t + 0.05) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+  return ans;
+}
+function setSrc(url) {
+  return new Promise(res => {
+    const done = () => { audio.removeEventListener('loadedmetadata', done); audio.removeEventListener('error', done); res(); };
+    audio.addEventListener('loadedmetadata', done); audio.addEventListener('error', done);
+    audio.src = url;
+  });
+}
+async function ensureAudio() {
+  if (!cur) return false;
+  const c = cur.data.chapters[cur.pos.ch];
+  if (!c || !c.audio) return false;
+  if (audioBook === cur.meta.id && audioCh === cur.pos.ch && audio.src) return true;
+  let blob;
+  try { blob = await DB.get('blobs', cur.meta.id + '/a/' + c.audio); } catch (e) {}
+  if (!blob) { toast('Не нашёл файл звука главы'); return false; }
+  audio.pause();
+  if (audioUrl) URL.revokeObjectURL(audioUrl);
+  audioUrl = URL.createObjectURL(blob);
+  await setSrc(audioUrl);
+  audioBook = cur.meta.id; audioCh = cur.pos.ch;
+  audio.playbackRate = S.speed;
+  let t = cur.pos.t || 0;
+  if (cur.pos.src === 'read' && c.starts && c.starts.length) t = c.starts[cur.pos.p] || 0;
+  try { audio.currentTime = t; } catch (e) {}
+  updateMediaSession();
+  return true;
+}
+async function play() {
+  if (!(await ensureAudio())) return;
+  const c = cur.data.chapters[cur.pos.ch];
+  cur.pos.pk = null;
+  if (cur.pos.src === 'read' && c.starts && c.starts.length) { audio.currentTime = c.starts[cur.pos.p] || 0; cur.pos.src = 'audio'; }
+  try { await audio.play(); } catch (e) {}
+}
+const togglePlay = () => { if (audio.paused) play(); else audio.pause(); };
+function afterSeek() {
+  if (!cur || audioBook !== cur.meta.id) return;
+  const c = cur.data.chapters[audioCh];
+  cur.pos.ch = audioCh; cur.pos.t = audio.currentTime; cur.pos.src = 'audio';
+  if (c.starts && c.starts.length) cur.pos.p = paraAt(c.starts, audio.currentTime);
+  savePos(); updatePlayerUI(); if (routeName === 'reader') markAudioPara(true);
+}
+async function skip(d) {
+  if (!(await ensureAudio())) return;
+  const c = cur.data.chapters[cur.pos.ch];
+  if (cur.pos.src === 'read' && c.starts && c.starts.length) { audio.currentTime = c.starts[cur.pos.p] || 0; cur.pos.src = 'audio'; }
+  const max = isFinite(audio.duration) ? audio.duration : 1e9;
+  audio.currentTime = Math.max(0, Math.min(max, audio.currentTime + d));
+  afterSeek();
+}
+async function gotoChapter(ch, autoplay) {
+  const n = cur.data.chapters.length;
+  if (ch < 0 || ch >= n) return;
+  cur.pos.ch = ch; cur.pos.p = 0; cur.pos.t = 0; cur.pos.src = cur.data.chapters[ch].audio ? 'audio' : 'read';
+  savePos();
+  if (cur.data.chapters[ch].audio && (autoplay || !audio.paused)) { await ensureAudio(); try { await audio.play(); } catch (e) {} }
+  else if (routeName === 'player') ensureAudio().then(updatePlayerUI);
+  updateMediaSession();
+}
+audio.addEventListener('timeupdate', () => {
+  if (!cur || audioBook !== cur.meta.id || audio.paused) return;
+  if (Date.now() < R.manualUntil && R.manualUntil - Date.now() < 8000 && routeName === 'reader') { updatePlayerUI(); return; }
+  const c = cur.data.chapters[audioCh];
+  cur.pos.ch = audioCh; cur.pos.t = audio.currentTime; cur.pos.src = 'audio'; cur.pos.pk = null;
+  if (c.starts && c.starts.length) cur.pos.p = paraAt(c.starts, audio.currentTime);
+  if (Date.now() - lastSave > 1000) { lastSave = Date.now(); savePos(); }
+  updatePlayerUI();
+  if (routeName === 'reader') markAudioPara(false);
+});
+audio.addEventListener('play', () => { updatePlayerUI(); if (routeName === 'reader') markAudioPara(true); });
+audio.addEventListener('pause', () => { if (cur && audioBook === cur.meta.id) { cur.pos.t = audio.currentTime; savePos(); syncSoon(true); } updatePlayerUI(); if (routeName === 'reader') markAudioPara(false); });
+audio.addEventListener('loadedmetadata', updatePlayerUI);
+audio.addEventListener('ended', async () => {
+  if (!cur) return;
+  const n = cur.data.chapters.length; let ch = audioCh + 1;
+  while (ch < n && !cur.data.chapters[ch].audio) ch++;
+  if (ch >= n) { cur.pos.t = 0; savePos(); updatePlayerUI(); return; }
+  await gotoChapter(ch, true);
+  if (routeName === 'reader') layoutReader(true);
+  if (routeName === 'player') SCREENS.player();
+});
+function updateMediaSession() {
+  pushMedia();
+  if (!('mediaSession' in navigator) || !cur || typeof MediaMetadata === 'undefined') return;
+  const c = cur.data.chapters[cur.pos.ch];
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: c ? c.title : '', artist: cur.meta.author || '', album: cur.meta.title, artwork: COV[cur.meta.id] ? [{ src: COV[cur.meta.id], sizes: '512x512' }] : [] });
+  } catch (e) {}
+}
+if ('mediaSession' in navigator) {
+  const set = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
+  set('play', () => play()); set('pause', () => audio.pause());
+  set('seekbackward', () => skip(-10)); set('seekforward', () => skip(10));
+  set('previoustrack', () => cur && gotoChapter(cur.pos.ch - 1, true)); set('nexttrack', () => cur && gotoChapter(cur.pos.ch + 1, true));
+}
+
+/* ===== виджет плеера на заблокированном экране (нативный мост) ===== */
+const NM = window.AndroidMedia || null;
+let mediaCoverFor = null;
+function pushMedia() {
+  if (!NM || !cur || audioBook !== cur.meta.id) return;
+  const c = cur.data.chapters[audioCh]; if (!c) return;
+  try {
+    NM.update((audioCh + 1) + '. ' + c.title, cur.meta.author || '', cur.meta.title, !audio.paused,
+      Math.round((audio.currentTime || 0) * 1000), Math.round((isFinite(audio.duration) ? audio.duration : 0) * 1000), audio.playbackRate || 1);
+  } catch (e) {}
+  pushMediaCover();
+}
+async function pushMediaCover() {
+  if (!NM || !cur || mediaCoverFor === cur.meta.id) return;
+  mediaCoverFor = cur.meta.id;
+  try {
+    const b = cur.meta.hasCover ? await DB.get('blobs', cur.meta.id + '/cover') : null;
+    if (!b) { NM.cover(''); return; }
+    const bmp = await createImageBitmap(b);
+    const k = Math.min(1, 320 / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(bmp.width * k)); cv.height = Math.max(1, Math.round(bmp.height * k));
+    cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+    NM.cover(cv.toDataURL('image/jpeg', 0.85).split(',')[1] || '');
+  } catch (e) {}
+}
+window.__mediaAction = a => {
+  if (a === 'play') play(); else if (a === 'pause') audio.pause(); else if (a === 'toggle') togglePlay();
+  else if (a === 'rew') skip(-10); else if (a === 'ff') skip(10);
+};
+window.__mediaSeek = async ms => { if (!(await ensureAudio())) return; audio.currentTime = Math.max(0, ms / 1000); afterSeek(); };
+['play', 'pause', 'seeked', 'ratechange', 'loadedmetadata'].forEach(ev => audio.addEventListener(ev, pushMedia));
+
+/* ============================ плеер ============================ */
+SCREENS.player = function renderPlayer() {
+  LS.set('mode:' + cur.meta.id, 'player');
+  const m = cur.meta;
+  $('#s-player').innerHTML = `
+    <div class="scr-pad"><div class="top"><button class="iconbtn" id="pl-back" aria-label="К библиотеке">${ic('down', 26)}</button><div class="label">Сейчас играет</div><div class="iconbtn"></div></div></div>
+    <div class="pl-body">
+      <div class="pl-cover">${coverHTML(m, 'width:100%;height:100%', false)}</div>
+      <div class="pl-title"><div class="pl-chtitle" id="pl-ch"></div><div class="muted" style="font-size:14px;margin-top:4px">${esc(m.title)}${m.author ? ' · ' + esc(m.author) : ''}</div></div>
+      <div class="pl-prog"><div class="track" id="pl-track"><div class="rail"></div><div class="fill" id="pl-fill"></div><div class="knob" id="pl-knob"></div></div>
+        <div class="times"><span id="pl-t0">0:00</span><span id="pl-cn"></span><span id="pl-t1">−0:00</span></div></div>
+      <div class="pl-ctrl"><button class="sk" id="pl-b" aria-label="Назад на 10 секунд">${skipIc(-1, 34)}</button><button class="pp" id="pl-pp" aria-label="Играть"></button><button class="sk" id="pl-f" aria-label="Вперёд на 10 секунд">${skipIc(1, 34)}</button></div>
+      <div class="pl-sec"><button id="pl-speed"><span class="big" id="pl-sp"></span>Скорость</button><button id="pl-toc"><span style="height:24px;display:flex;align-items:center">${ic('list', 24)}</span>Главы</button><button id="pl-bm"><span style="height:24px;display:flex;align-items:center">${ic('markplus', 24)}</span>Закладка</button></div>
+      ${hasText() ? `<div class="pl-read"><button class="btn out" id="pl-read">${ic('book', 20)}Читать с этого места</button></div>` : '<div style="flex:1"></div>'}
+    </div>`;
+  $('#pl-back').onclick = back;
+  $('#pl-pp').onclick = togglePlay;
+  $('#pl-b').onclick = () => skip(-10); $('#pl-f').onclick = () => skip(10);
+  $('#pl-speed').onclick = () => { const L = [0.75, 1, 1.25, 1.5, 1.75, 2]; S.speed = L[(L.indexOf(S.speed) + 1) % L.length]; applySettings(); updatePlayerUI(); };
+  $('#pl-toc').onclick = () => { tocTab = 'toc'; go('toc'); };
+  $('#pl-bm').onclick = () => { tocTab = 'bm'; go('toc'); };
+  if ($('#pl-read')) $('#pl-read').onclick = () => go('reader', true);
+  const tr = $('#pl-track'); let drag = false, lastSeek = 0;
+  const seekTo = async (e, force) => {
+    const r = tr.getBoundingClientRect(); const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    if (!force && Date.now() - lastSeek < 120) return; lastSeek = Date.now();
+    if (!(await ensureAudio())) return;
+    if (isFinite(audio.duration)) { audio.currentTime = f * audio.duration; afterSeek(); }
+  };
+  tr.addEventListener('pointerdown', e => { drag = true; tr.setPointerCapture(e.pointerId); seekTo(e, true); });
+  tr.addEventListener('pointermove', e => { if (drag) seekTo(e, false); });
+  tr.addEventListener('pointerup', e => { if (drag) { drag = false; seekTo(e, true); } });
+  tr.addEventListener('pointercancel', () => drag = false);
+  updatePlayerUI();
+  ensureAudio().then(updatePlayerUI);
+};
+function updatePlayerUI() {
+  if (routeName !== 'player' || !cur || !$('#pl-ch')) return;
+  const ch = cur.pos.ch, c = cur.data.chapters[ch], n = cur.data.chapters.length;
+  const loaded = audioBook === cur.meta.id && audioCh === ch;
+  const dur = loaded && isFinite(audio.duration) ? audio.duration : (c && c.dur) || 0;
+  const t = loaded ? audio.currentTime : (cur.pos.t || 0);
+  const f = dur > 0 ? Math.min(1, t / dur) : 0;
+  $('#pl-ch').textContent = `${ch + 1}. ${c ? c.title : ''}`;
+  $('#pl-cn').textContent = `Глава ${ch + 1} из ${n}`;
+  $('#pl-t0').textContent = fmtT(t); $('#pl-t1').textContent = '−' + fmtT(Math.max(0, dur - t));
+  $('#pl-fill').style.width = (f * 100) + '%'; $('#pl-knob').style.left = (f * 100) + '%';
+  $('#pl-pp').innerHTML = audio.paused ? playIc(40) : pauseIc(40);
+  $('#pl-pp').setAttribute('aria-label', audio.paused ? 'Играть' : 'Пауза');
+  $('#pl-sp').textContent = S.speed + '×';
+}
+
+/* ============================ читалка ============================ */
+const R = { sp: 0, n: 1, cw: 0, gap: 0, step: 0, spreads: 1, total: 1, colOf: [], ch: -1, manualUntil: 0, pendingLast: false };
+
+SCREENS.reader = function renderReader() {
+  LS.set('mode:' + cur.meta.id, 'reader');
+  $('#s-reader').innerHTML = `
+    <div class="scr-pad rd-top">
+      <div class="grp"><button class="iconbtn" id="rd-back" aria-label="Назад">${ic('back', 24)}</button><button class="chlink" id="rd-ch"></button></div>
+      <div class="grp"><button class="iconbtn" id="rd-bm" aria-label="Закладки">${ic('mark', 24)}</button><button class="iconbtn aa" id="rd-aa" aria-label="Настройки чтения">Aa</button>${hasAudio() ? `<button class="spk" id="rd-spk" aria-label="Перейти в плеер">${ic('speaker', 22)}</button>` : ''}</div>
+    </div>
+    <div class="rd-view" id="rd-view"><div class="rd-mid" id="rd-mid"></div><div class="rd-clip" id="rd-clip"><div class="rd-flow" id="rd-flow"></div></div><div class="rd-arr l" id="rd-al">${ic('back', 26)}</div><div class="rd-arr r" id="rd-ar">${ic('right', 26)}</div></div>
+    <div class="rd-foot"><div class="row"><span id="rd-f1"></span><span id="rd-f2"></span></div><div class="bar3"><i id="rd-fill"></i></div></div>`;
+  $('#rd-back').onclick = back;
+  $('#rd-ch').onclick = () => { tocTab = 'toc'; go('toc'); };
+  $('#rd-bm').onclick = () => { tocTab = 'bm'; go('toc'); };
+  $('#rd-aa').onclick = () => go('settings');
+  if ($('#rd-spk')) $('#rd-spk').onclick = () => go('player', true);
+  bindReaderTouch($('#rd-view'));
+  R.ch = -1; R.sp = 0; R.colOf = [];
+  layoutReader(true);
+};
+
+function layoutReader(first) {
+  const view = $('#rd-view'); if (!view || !cur) return;
+  const chs = cur.data.chapters;
+  let ch = (first || R.ch < 0) ? cur.pos.ch : R.ch;
+  if (!chs[ch] || !(chs[ch].paragraphs || []).length) { const nx = chs.findIndex(c => c.paragraphs && c.paragraphs.length); if (nx < 0) return; ch = nx; cur.pos.ch = ch; cur.pos.p = 0; }
+  const flow = $('#rd-flow'), clip = $('#rd-clip');
+  const keep = (!first && R.colOf.length && R.ch === ch) ? firstParaOnSpread(R.sp) : cur.pos.p;
+  if (ch !== R.ch) {
+    { const hs = chs[ch].html || []; flow.innerHTML = chs[ch].paragraphs.map((t, i) => `<p data-i="${i}">${hs[i] ? safeHtml(hs[i]) : esc(t)}</p>`).join(''); }
+    R.ch = ch;
+    $('#rd-ch').innerHTML = `Глава ${ch + 1} из ${chs.length} ${ic('down', 14)}`;
+  }
+  const W = view.clientWidth, H = view.clientHeight;
+  const wide = W >= 900 && W > H;
+  R.n = S.pages === '1' ? 1 : S.pages === '2' ? 2 : (wide ? 2 : 1);
+  const mx = (R.n === 2 ? 72 : Math.max(20, Math.min(36, W * 0.065))) * (S.margin === 'narrow' ? 0.5 : 1);
+  const my = R.n === 2 ? 36 : 14;
+  R.gap = R.n === 2 ? 128 : 40;
+  const clipW = W - 2 * mx + 12, clipH = Math.max(80, H - my - 14);
+  R.cw = (clipW - (R.n - 1) * R.gap) / R.n;
+  clip.style.cssText = `left:${mx - 6}px;top:${my}px;width:${clipW}px;height:${clipH}px`;
+  flow.style.cssText = `width:${clipW}px;height:${clipH}px;column-width:${Math.floor(R.cw * 100) / 100}px;column-gap:${R.gap}px;transition:none`;
+  R.step = R.n * (R.cw + R.gap);
+  const mid = $('#rd-mid'); mid.style.display = R.n === 2 ? 'block' : 'none';
+  $('#rd-al').style.display = $('#rd-ar').style.display = R.n === 2 ? 'flex' : 'none';
+  void flow.offsetWidth;
+  R.total = Math.max(1, Math.round((flow.scrollWidth + R.gap) / (R.cw + R.gap)));
+  R.spreads = Math.ceil(R.total / R.n);
+  R.colOf = [...flow.children].map(el => Math.floor((el.offsetLeft + 2) / (R.cw + R.gap)));
+  if (R.pendingLast) { R.sp = R.spreads - 1; R.pendingLast = false; cur.pos.p = firstParaOnSpread(R.sp); }
+  else R.sp = Math.min(R.spreads - 1, spreadOfPara(keep));
+  showSpread(true);
+  markAudioPara(false);
+}
+const spreadOfPara = i => Math.floor((R.colOf[i] || 0) / R.n);
+function firstParaOnSpread(sp) {
+  const c0 = sp * R.n, c1 = c0 + R.n; let best = 0;
+  for (let i = 0; i < R.colOf.length; i++) { if (R.colOf[i] >= c0 && R.colOf[i] < c1) return i; if (R.colOf[i] <= c0) best = i; }
+  return best;
+}
+function showSpread(instant) {
+  const flow = $('#rd-flow'); if (!flow) return;
+  if (!instant) flow.style.transition = 'transform .18s ease-out';
+  flow.style.transform = `translateX(${-R.sp * R.step}px)`;
+  if (instant) requestAnimationFrame(() => { if ($('#rd-flow')) $('#rd-flow').style.transition = 'transform .18s ease-out'; });
+  const n = cur.data.chapters.length, a = R.sp * R.n + 1, b = Math.min(R.total, a + R.n - 1);
+  $('#rd-f1').textContent = `Глава ${R.ch + 1} из ${n} · стр. ${R.n === 2 && b > a ? a + '–' + b : a} из ${R.total}`;
+  const pct = Math.round(100 * (R.ch + (R.sp + 1) / R.spreads) / n);
+  $('#rd-f2').textContent = `${Math.min(100, pct)}% книги`;
+  $('#rd-fill').style.width = (100 * (R.sp + 1) / R.spreads) + '%';
+}
+function readPos() {
+  cur.pos.ch = R.ch; cur.pos.src = 'read'; cur.pos.t = 0;
+  const pk = cur.pos.pk;
+  if (pk != null && cur.pos.pkc === R.ch && spreadOfPara(pk) === R.sp) cur.pos.p = pk;
+  else { cur.pos.pk = null; cur.pos.p = firstParaOnSpread(R.sp); }
+  savePos(); markAudioPara(false);
+}
+function setPick(i) {
+  cur.pos.ch = R.ch; cur.pos.p = i; cur.pos.src = 'read'; cur.pos.t = 0; cur.pos.pk = i; cur.pos.pkc = R.ch;
+  R.manualUntil = Date.now() + 8000;
+  savePos(); markAudioPara(false);
+}
+function turn(d) {
+  R.manualUntil = Date.now() + 8000;
+  const ns = R.sp + d;
+  if (ns < 0) return stepChapter(-1);
+  if (ns >= R.spreads) return stepChapter(1);
+  R.sp = ns; showSpread(false); readPos();
+}
+function stepChapter(d) {
+  const chs = cur.data.chapters; let ch = R.ch + d;
+  while (ch >= 0 && ch < chs.length && !(chs[ch].paragraphs || []).length) ch += d;
+  if (ch < 0 || ch >= chs.length) { toast(d > 0 ? 'Конец книги' : 'Это начало книги'); return; }
+  cur.pos.ch = ch; cur.pos.p = 0; cur.pos.src = 'read'; cur.pos.t = 0;
+  R.pendingLast = d < 0; R.ch = -1;
+  layoutReader(true);
+  readPos();
+}
+function markAudioPara(allowFollow) {
+  const flow = $('#rd-flow'); if (!flow) return;
+  $$('p.cur, p.pick', flow).forEach(e => e.classList.remove('cur', 'pick'));
+  if (cur.pos.pk != null && cur.pos.src === 'read' && cur.pos.pkc === R.ch) { const pe = flow.children[cur.pos.pk]; if (pe) pe.classList.add('pick'); }
+  if (!S.hl || !hasAudio() || cur.pos.src !== 'audio') return;
+  const playing = !audio.paused && audioBook === cur.meta.id;
+  if (playing && audioCh !== R.ch && S.follow && Date.now() >= R.manualUntil) { R.ch = -1; cur.pos.ch = audioCh; layoutReader(true); return; }
+  if (cur.pos.ch !== R.ch) return;
+  const el = flow.children[cur.pos.p]; if (!el) return;
+  el.classList.add('cur');
+  if (playing && S.follow && Date.now() >= R.manualUntil) {
+    const sp = spreadOfPara(cur.pos.p);
+    if (sp !== R.sp) { R.sp = sp; showSpread(false); }
+  }
+}
+function bindReaderTouch(view) {
+  let sx = 0, sy = 0, moved = false, lp = null, fired = false, target = null;
+  view.addEventListener('touchstart', e => {
+    if (e.touches.length > 1) return;
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false; fired = false;
+    target = e.target.closest ? e.target.closest('p') : null;
+    clearTimeout(lp);
+    lp = setTimeout(() => { if (!moved && target) { fired = true; paraMenu(+target.dataset.i); } }, 550);
+  }, { passive: true });
+  view.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10) { moved = true; clearTimeout(lp); } }, { passive: true });
+  view.addEventListener('touchend', e => {
+    clearTimeout(lp);
+    if (fired) { e.preventDefault(); return; }
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { turn(dx < 0 ? 1 : -1); return; }
+    if (moved) return;
+    tapAt(t.clientX);
+  });
+  view.addEventListener('click', e => { if ('ontouchstart' in window) return; tapAt(e.clientX); });
+  view.addEventListener('contextmenu', e => e.preventDefault());
+}
+function tapAt(x) {
+  const r = $('#rd-view').getBoundingClientRect(); const f = (x - r.left) / r.width;
+  if (f < 0.33) turn(-1); else if (f > 0.67) turn(1);
+}
+async function paraMenu(i) {
+  const c = cur.data.chapters[R.ch]; const text = c.paragraphs[i] || '';
+  if (c.audio && c.starts && c.starts.length) setPick(i);
+  const btns = [];
+  if (c.audio && c.starts && c.starts.length) btns.push({ label: 'Слушать отсюда', cls: '', act: 'play' });
+  btns.push({ label: 'Добавить закладку', cls: 'out', act: 'bm' }, { label: 'Отмена', cls: 'grey', act: 'no' });
+  const r = await choose('Абзац', text.length > 120 ? text.slice(0, 120) + '…' : text, btns);
+  const act = r >= 0 ? btns[r].act : 'no';
+  if (act === 'play') { setPick(i); await play(); markAudioPara(true); }
+  else if (act === 'bm') { cur.pos.ch = R.ch; cur.pos.p = i; addBookmark(i); }
+}
+window.addEventListener('resize', () => { if (routeName === 'reader') layoutReader(false); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (routeName === 'reader') layoutReader(false); });
+
+/* ============================ закладки и оглавление ============================ */
+const bmList = () => LS.get('bm:' + cur.meta.id, []);
+function addBookmark(pIndex) {
+  const ch = cur.pos.ch, c = cur.data.chapters[ch], p = pIndex != null ? pIndex : cur.pos.p;
+  const b = { id: Date.now(), ch, p, t: null, text: '', at: Date.now() };
+  if (c.paragraphs && c.paragraphs[p]) b.text = c.paragraphs[p];
+  if (c.audio) {
+    if (c.starts && c.starts.length) b.t = c.starts[p] || 0;
+    else b.t = (audioBook === cur.meta.id && audioCh === ch) ? audio.currentTime : (cur.pos.t || 0);
+  }
+  const l = bmList(); l.unshift(b); LS.set('bm:' + cur.meta.id, l);
+  toast('Закладка добавлена');
+  if (routeName === 'toc') SCREENS.toc();
+}
+function jumpTo(ch, p, t) {
+  const c = cur.data.chapters[ch]; if (!c) return;
+  cur.pos.ch = ch; cur.pos.p = p || 0; cur.pos.t = t || 0;
+  cur.pos.src = (c.starts && c.starts.length) ? 'read' : (c.audio ? 'audio' : 'read');
+  savePos();
+  const mode = LS.get('mode:' + cur.meta.id, null);
+  go(mode === 'player' && hasAudio() ? 'player' : (hasText() ? 'reader' : 'player'), true);
+}
+SCREENS.toc = function renderToc() {
+  const m = cur.meta, chs = cur.data.chapters, now = cur.pos.ch;
+  const rows = chs.map((c, i) => `<button class="list-item ${i === now ? 'now' : (i < now ? 'done' : '')}" data-ch="${i}"><div class="dot">${i < now ? ic('check', 14) : (c.num || i + 1)}</div><div style="flex:1;min-width:0;font-family:var(--serif);font-size:15.5px;line-height:1.25;font-weight:${i === now ? 600 : 400}">${esc(c.title)}</div></button>`).join('');
+  const c0 = chs[now];
+  const where = c0 && c0.paragraphs && c0.paragraphs.length && hasText() ? `Глава ${now + 1} · абзац ${cur.pos.p + 1} из ${c0.paragraphs.length}` : `Глава ${now + 1} · ${fmtT(cur.pos.t)}`;
+  const marks = bmList().map(b => {
+    const bc = chs[b.ch]; const sub = `Глава ${b.ch + 1}${b.t != null ? ' · ' + fmtT(b.t) : ''} · ${new Date(b.at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`;
+    return `<div class="list-item" style="padding-right:0"><button style="flex:1;min-width:0;display:flex;gap:12px;align-items:flex-start;text-align:left;padding:8px 0" data-bm="${b.id}"><span style="color:var(--accent);margin-top:2px">${ic('mark', 22).replace('<svg', '<svg style="fill:currentColor"')}</span><span style="flex:1;min-width:0"><span style="display:block;font-family:var(--serif);font-size:15px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(b.text || (bc ? bc.title : ''))}</span><span class="muted" style="display:block;font-size:12px;margin-top:4px">${esc(sub)}</span></span></button><button class="iconbtn" data-del="${b.id}" aria-label="Удалить закладку">${ic('close', 20)}</button></div>`;
+  }).join('');
+  $('#s-toc').innerHTML = `
+    <div class="scr-pad"><div class="top" style="justify-content:flex-start;margin-left:-12px"><button class="iconbtn" id="toc-back" aria-label="Назад">${ic('back', 24)}</button><div class="ttl" style="margin-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.title)}</div></div></div>
+    <div style="padding:6px 20px 0"><div class="seg"><button data-tab="toc" class="${tocTab === 'toc' ? 'on' : ''}">Оглавление</button><button data-tab="bm" class="${tocTab === 'bm' ? 'on' : ''}">Закладки</button></div></div>
+    <div class="scroll" style="padding-top:12px">
+      ${tocTab === 'toc' ? rows : `
+        <div class="label" style="margin-top:6px">Автоматически</div>
+        <button class="card" id="bm-auto" style="margin-top:8px;display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--hl);border-color:transparent"><span class="iconbtn" style="background:var(--accent);color:var(--accent-ink);width:40px;height:40px">${ic('clock', 22)}</span><span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:15px">Вы остановились здесь</span><span style="display:block;font-size:13px;margin-top:2px">${esc(where)}</span><span style="display:block;font-size:12px;margin-top:2px;opacity:.8">Позиция сохраняется сама</span></span></button>
+        <div class="label" style="margin-top:22px">Мои закладки</div>
+        <div style="margin-top:4px">${marks || '<div class="muted" style="padding:14px 0;font-size:14px;line-height:1.4">Пока нет. Нажмите кнопку ниже или удерживайте палец на абзаце в читалке.</div>'}</div>
+        <div style="height:12px"></div><button class="btn" id="bm-add">${ic('markplus', 20)}Добавить закладку здесь</button>`}
+    </div>`;
+  $('#toc-back').onclick = back;
+  $$('[data-tab]').forEach(b => b.onclick = () => { tocTab = b.dataset.tab; SCREENS.toc(); });
+  $$('[data-ch]').forEach(b => b.onclick = () => { const ch = +b.dataset.ch; gotoChapter(ch, false).then(() => { const mode = LS.get('mode:' + cur.meta.id, null); go(mode === 'player' && hasAudio() ? 'player' : (hasText() ? 'reader' : 'player'), true); }); });
+  $$('[data-bm]').forEach(b => b.onclick = () => { const x = bmList().find(y => String(y.id) === b.dataset.bm); if (x) jumpTo(x.ch, x.p, x.t); });
+  $$('[data-del]').forEach(b => b.onclick = () => { LS.set('bm:' + cur.meta.id, bmList().filter(y => String(y.id) !== b.dataset.del)); SCREENS.toc(); });
+  if ($('#bm-auto')) $('#bm-auto').onclick = () => jumpTo(cur.pos.ch, cur.pos.p, cur.pos.t);
+  if ($('#bm-add')) $('#bm-add').onclick = () => addBookmark();
+};
+
+/* ============================ каталог (Яндекс Диск) ============================ */
+const NET = window.AndroidNet || null;
+const YA = 'https://cloud-api.yandex.net/v1/disk/public/resources';
+const DEFAULT_LINK = 'https://disk.yandex.ru/d/dAI_8BtPfm4TwA';
+const CAT = { items: [], loading: false, err: '', dl: null };
+const netWait = {};
+let netSeq = 0;
+window.__netDone = (id, code, text) => { const w = netWait[id]; if (w) { delete netWait[id]; w.done(code, text); } };
+window.__netProgress = (id, done, total) => { const w = netWait[id]; if (w && w.progress) w.progress(done, total); };
+function netGet(url) {
+  return new Promise((res, rej) => {
+    if (!NET) return rej(new Error('Каталог работает только в приложении на телефоне.'));
+    const id = 'g' + (++netSeq);
+    netWait[id] = { done: (c, t) => c === -1 ? rej(new Error('Нет связи с интернетом. ' + t)) : res({ code: c, text: t }) };
+    NET.get(id, url);
+  });
+}
+function netDownload(url, onProgress) {
+  return new Promise((res, rej) => {
+    const id = 'd' + (++netSeq);
+    if (CAT.dl) CAT.dl.id = id;
+    netWait[id] = { progress: onProgress, done: (c, t) => c === 200 ? res(t) : rej(new Error(c === -2 ? 'cancelled' : c === -1 ? 'Скачивание прервалось. ' + t : 'Яндекс Диск не отдал файл (' + c + ').')) };
+    NET.download(id, url);
+  });
+}
+
+/* ============================ синхронизация прогресса через Яндекс Диск ============================ */
+const SYNC_DIR = 'disk:/Аудиокниги/VOXLIB/Прогресс';
+const YA_RES = 'https://cloud-api.yandex.net/v1/disk/resources';
+const syncToken = () => String(LS.get('sync_token', '') || '').trim();
+const syncOn = () => !!S.syncOn && !!syncToken() && !!NET && !!NET.request;
+function devName() {
+  let d = LS.get('devname', null);
+  if (!d) {
+    const m = /Android [\d.]+; ([^;)]+?)(?: Build|\)|;)/.exec(navigator.userAgent);
+    d = (m ? m[1].trim() : 'Устройство') + ' ·' + Math.random().toString(36).slice(2, 5);
+    LS.set('devname', d);
+  }
+  return d;
+}
+function hash53(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+const syncPath = () => SYNC_DIR + '/' + hash53(norm(cur.meta.title) + '|' + norm(cur.meta.author)) + '.json';
+const yaAuth = () => ({ Authorization: 'OAuth ' + syncToken(), Accept: 'application/json' });
+function netReq(method, url, headers, body) {
+  return new Promise((res, rej) => {
+    if (!NET || !NET.request) return rej(new Error('Нужна новая версия приложения.'));
+    const id = 'r' + (++netSeq);
+    netWait[id] = { done: (c, t) => c === -1 ? rej(new Error('Нет связи с интернетом. ' + t)) : res({ code: c, text: t }) };
+    NET.request(id, method, url, JSON.stringify(headers || {}), body || '');
+  });
+}
+let syncLast = 0, syncBusy = false, syncDirOk = false, syncSent = '', syncChecked = 0;
+function syncSoon(force) {
+  if (!syncOn() || !cur) return;
+  if (!force && Date.now() - syncLast < 20000) return;
+  syncPush();
+}
+async function syncPush() {
+  if (syncBusy || !syncOn() || !cur) return;
+  const p = cur.pos, ch = cur.data.chapters[p.ch];
+  const sig = cur.meta.id + ':' + posSig(p);
+  if (sig === syncSent) return;
+  syncBusy = true; syncLast = Date.now();
+  try {
+    if (!syncDirOk) { await netReq('PUT', YA_RES + '?path=' + encodeURIComponent(SYNC_DIR), yaAuth()); syncDirOk = true; }
+    const payload = JSON.stringify({ v: 1, title: cur.meta.title, author: cur.meta.author || '', ch: p.ch, p: p.p, t: p.t || 0, f: p.f || 0, src: p.src,
+      u: p.u || Date.now(), dev: devName(), chTitle: ch ? ch.title : '', pct: LS.get('pct:' + cur.meta.id, 0) });
+    const r = await netReq('GET', YA_RES + '/upload?overwrite=true&path=' + encodeURIComponent(syncPath()), yaAuth());
+    if (r.code !== 200) throw new Error('HTTP ' + r.code);
+    const up = await netReq('PUT', JSON.parse(r.text).href, { 'Content-Type': 'application/json' }, payload);
+    if (up.code < 200 || up.code >= 300) throw new Error('HTTP ' + up.code);
+    syncSent = sig;
+  } catch (e) { console.log('sync push: ' + (e && e.message)); }
+  syncBusy = false;
+}
+async function syncFetch() {
+  const r = await netReq('GET', YA_RES + '/download?path=' + encodeURIComponent(syncPath()), yaAuth());
+  if (r.code === 404) return null;
+  if (r.code !== 200) throw new Error('HTTP ' + r.code);
+  const d = await netReq('GET', JSON.parse(r.text).href, {});
+  if (d.code !== 200) throw new Error('HTTP ' + d.code);
+  return JSON.parse(d.text);
+}
+const agoText = u => { const m = Math.max(0, Math.round((Date.now() - u) / 60000)); return m < 2 ? 'только что' : m < 60 ? m + ' мин назад' : m < 1440 ? Math.round(m / 60) + ' ч назад' : Math.round(m / 1440) + ' дн назад'; };
+async function syncOnOpen() {
+  if (!syncOn() || !cur || Date.now() - syncChecked < 30000) return;
+  syncChecked = Date.now();
+  const id = cur.meta.id;
+  try {
+    const rem = await syncFetch();
+    if (!rem || !cur || cur.meta.id !== id || rem.dev === devName()) return;
+    const loc = cur.pos;
+    const newer = (rem.u || 0) > (loc.u || 0) + 5000;
+    const differs = rem.ch !== loc.ch || Math.abs((rem.t || 0) - (loc.t || 0)) > 20 || (rem.src === 'read' && rem.p !== loc.p);
+    if (!newer || !differs) return;
+    const i = await choose('Продолжить с другого устройства?',
+      'Устройство «' + rem.dev + '» остановилось здесь: ' + (rem.chTitle || ('глава ' + (rem.ch + 1))) + ', ' + Math.round((rem.pct || 0) * 100) + '% книги (' + agoText(rem.u) + ').',
+      [{ label: 'Перейти туда', cls: '' }, { label: 'Остаться здесь', cls: 'grey' }]);
+    if (i !== 0 || !cur || cur.meta.id !== id) return;
+    audio.pause(); audioCh = -1;
+    Object.assign(cur.pos, { ch: rem.ch, p: rem.p, t: rem.t || 0, src: rem.src || 'audio', pk: null, u: rem.u });
+    cur._sig = posSig(cur.pos);
+    savePos(); route();
+  } catch (e) { console.log('sync open: ' + (e && e.message)); }
+}
+const mb = n => (n / 1048576).toFixed(n >= 1e8 ? 0 : 1).replace('.', ',');
+// служебные папки конвейера на Диске (Входящие, Обработано, Логи, Кэш, Код) и всё, что начинается с _ или .: в каталоге не показываем
+const SERVICE_DIRS = /^(входящие|обработано|логи|кэш|код|прогресс)$|^[_.]/i;
+const catLink = () => String(LS.get('catalog_url', DEFAULT_LINK) || '').trim();
+
+async function loadCatalog() {
+  const link = catLink();
+  CAT.err = ''; CAT.items = [];
+  if (!link) { drawCatalog(); return; }
+  CAT.loading = true; drawCatalog();
+  try {
+    const r = await netGet(YA + '?limit=200&public_key=' + encodeURIComponent(link));
+    if (r.code === 404) throw new Error('Ссылка не найдена или доступ закрыт. Проверьте, что папка открыта «по ссылке».');
+    if (r.code !== 200) throw new Error('Яндекс Диск ответил ошибкой ' + r.code + '.');
+    const j = JSON.parse(r.text);
+    let list = j.type === 'file' ? [j] : ((j._embedded && j._embedded.items) || []);
+    const items = [];
+    for (const i of list) {
+      if (i.type === 'file' && /\.book$/i.test(i.name)) items.push({ name: i.name, title: i.name.replace(/\.book$/i, ''), size: i.size || 0, path: j.type === 'file' ? null : i.path, key: 'ya:' + i.name + ':' + (i.size || 0) });
+      else if (i.type === 'dir' && j.type !== 'file' && !SERVICE_DIRS.test(i.name)) items.push({ dir: true, name: i.name, title: i.name, size: 0, path: i.path, key: 'yadir:' + i.name });
+    }
+    items.sort((a, b) => natCmp(a.title, b.title));
+    CAT.items = items;
+    if (!CAT.items.length) CAT.err = 'В этой папке нет файлов .book и папок с аудиокнигами.';
+  } catch (e) { CAT.err = e.message || String(e); }
+  CAT.loading = false; drawCatalog();
+}
+
+function drawCatalog() {
+  const box = $('#cat-list'); if (!box) return;
+  const have = new Set(META.map(m => m.src).filter(Boolean));
+  let h = '';
+  if (CAT.loading) h += '<div class="muted" style="padding:20px 0">Загружаю список…</div>';
+  if (CAT.err) h += `<div class="card" style="margin-top:14px;color:var(--warn);line-height:1.45">${esc(CAT.err)}</div>`;
+  h += CAT.items.map((it, i) => {
+    const dl = CAT.dl && CAT.dl.key === it.key;
+    const inLib = have.has(it.key);
+    let right;
+    if (dl) right = '<button class="btn sm danger" data-cancel style="width:auto;padding:0 14px">Отмена</button>';
+    else if (inLib) right = '<span class="tag">В библиотеке</span>';
+    else right = `<button class="btn sm" data-get="${i}" style="width:auto;padding:0 16px;${CAT.dl ? 'opacity:.5' : ''}" ${CAT.dl ? 'disabled' : ''}>Скачать</button>`;
+    const prog = dl ? `<div class="bar4" style="height:6px;margin-top:8px"><i id="cat-bar" style="height:6px;width:${CAT.dl.total ? Math.round(100 * CAT.dl.done / CAT.dl.total) : 0}%"></i></div><div class="muted" id="cat-txt" style="font-size:12px;margin-top:4px">${catProgText()}</div>` : '';
+    return `<div style="padding:14px 0;border-bottom:1px solid var(--line2)"><div style="display:flex;align-items:center;gap:12px"><div class="ico" style="width:44px;height:44px;flex:none;border-radius:12px;background:var(--chip);color:var(--accent);display:flex;align-items:center;justify-content:center">${ic(it.dir ? 'head' : 'book', 22)}</div><div style="flex:1;min-width:0"><div style="font-family:var(--serif);font-weight:600;font-size:16px;line-height:1.25">${esc(it.title)}</div><div class="muted" style="font-size:13px;margin-top:2px">${it.dir ? 'Аудиокнига (папка с mp3)' : (it.size ? mb(it.size) + ' МБ' : '')}</div></div>${right}</div>${prog}</div>`;
+  }).join('');
+  if (CAT.note) h += `<div class="muted" style="font-size:12px;line-height:1.4;margin-top:12px">${esc(CAT.note)}</div>`;
+  box.innerHTML = h;
+  $$('[data-get]', box).forEach(b => b.onclick = () => catDownload(CAT.items[+b.dataset.get]));
+  const c = $('[data-cancel]', box); if (c) c.onclick = () => { if (CAT.dl) { CAT.dl.stop = true; if (CAT.dl.id && NET) NET.cancel(CAT.dl.id); } };
+}
+const catProgText = () => CAT.dl ? (CAT.dl.total ? `Скачано ${mb(CAT.dl.done)} из ${mb(CAT.dl.total)} МБ` : `Скачано ${mb(CAT.dl.done)} МБ`) + (CAT.dl.stage ? ' · ' + CAT.dl.stage : '') : '';
+function updateCatProgress() {
+  const b = $('#cat-bar'), t = $('#cat-txt'); if (!CAT.dl) return;
+  if (b) b.style.width = (CAT.dl.total ? Math.round(100 * CAT.dl.done / CAT.dl.total) : 0) + '%';
+  if (t) t.textContent = catProgText();
+}
+
+async function catDownload(item) {
+  if (CAT.dl || !item) return;
+  if (item.dir) return catDownloadDir(item);
+  CAT.dl = { key: item.key, done: 0, total: item.size, id: null }; CAT.err = ''; drawCatalog();
+  let path = null, blob = null;
+  try {
+    let u = YA + '/download?public_key=' + encodeURIComponent(catLink());
+    if (item.path) u += '&path=' + encodeURIComponent(item.path);
+    const r = await netGet(u);
+    if (r.code !== 200) throw new Error('Не удалось получить ссылку на файл (' + r.code + ').');
+    const href = JSON.parse(r.text).href;
+    path = await netDownload(href, (d, t) => { if (CAT.dl) { CAT.dl.done = d; if (t) CAT.dl.total = t; updateCatProgress(); } });
+    const src = (window.Capacitor && Capacitor.convertFileSrc) ? Capacitor.convertFileSrc('file://' + path) : path;
+    blob = await (await fetch(src)).blob();
+    blob.name = item.name;
+  } catch (e) {
+    CAT.dl = null;
+    if (e.message !== 'cancelled') CAT.err = e.message || String(e);
+    if (path && NET) NET.remove(path);
+    drawCatalog();
+    return;
+  }
+  CAT.dl = null;
+  try { await importBookFile(blob, item.key); }
+  catch (e) { failImport(e && e.message ? e.message : String(e)); }
+  finally { if (path && NET) NET.remove(path); }
+}
+
+/* папка с mp3 на диске -> аудиокнига: файлы качаются по одному и сразу кладутся в память */
+async function catDownloadDir(item) {
+  CAT.dl = { key: item.key, done: 0, total: 0, id: null, stop: false }; CAT.err = ''; CAT.note = ''; drawCatalog();
+  const id = newId();
+  let path = null, started = false;
+  try {
+    const r = await netGet(YA + '?limit=500&public_key=' + encodeURIComponent(catLink()) + '&path=' + encodeURIComponent(item.path));
+    if (r.code !== 200) throw new Error('Не удалось открыть папку «' + item.title + '» (' + r.code + ').');
+    const all = (JSON.parse(r.text)._embedded || {}).items || [];
+    const files = all.filter(i => i.type === 'file' && /\.(mp3|m4a|m4b|aac|ogg|opus|wav|flac)$/i.test(i.name)).sort((a, b) => natCmp(a.name, b.name));
+    if (!files.length) throw new Error('В папке «' + item.title + '» нет аудиофайлов (mp3).');
+    const imgs = all.filter(i => i.type === 'file' && /\.(jpe?g|png|webp)$/i.test(i.name));
+    const cov = imgs.find(i => /cover|обложк/i.test(i.name)) || imgs[0] || null;
+    CAT.dl.total = files.reduce((s, f) => s + (f.size || 0), 0) + (cov ? (cov.size || 0) : 0);
+    started = true;
+    let base = 0;
+    const tmo = (pr, ms, what) => { let t0; return Promise.race([pr, new Promise((_, rej) => { t0 = setTimeout(() => rej(new Error('Завис этап «' + what + '». Нажмите «Скачать» ещё раз.')), ms); })]).finally(() => clearTimeout(t0)); };
+    const stage = s => { if (CAT.dl) { CAT.dl.stage = s; updateCatProgress(); } };
+    let nowName = '';
+    const fetchOne = async (f) => {
+      nowName = f.name;
+      let lastErr = null;
+      for (let att = 1; att <= 4; att++) {
+        if (CAT.dl && CAT.dl.stop) throw new Error('cancelled');
+        const pre = att > 1 ? 'повтор ' + att + ': ' : '';
+        try {
+          stage(pre + f.name + ': ссылка');
+          const rr = await netGet(YA + '/download?public_key=' + encodeURIComponent(catLink()) + '&path=' + encodeURIComponent(f.path));
+          if (rr.code !== 200) throw new Error('Не удалось получить ссылку на файл «' + f.name + '» (' + rr.code + ').');
+          const href = JSON.parse(rr.text).href;
+          stage(pre + f.name + ': скачиваю');
+          path = await netDownload(href, (d) => { if (CAT.dl) { CAT.dl.done = base + d; updateCatProgress(); } });
+          stage(f.name + ': читаю');
+          const src = (window.Capacitor && Capacitor.convertFileSrc) ? Capacitor.convertFileSrc('file://' + path) : path;
+          const b = await tmo(fetch(src).then(r => r.blob()), 180000, 'чтение ' + f.name);
+          return new Blob([b], { type: mimeOf(f.name) || b.type });
+        } catch (e) {
+          if (e.message === 'cancelled' || (CAT.dl && CAT.dl.stop)) throw new Error('cancelled');
+          lastErr = e;
+          if (path && NET) { NET.remove(path); path = null; }
+          if (CAT.dl) CAT.dl.done = base;
+          await new Promise(r => setTimeout(r, 1500));
+        }
+      }
+      throw lastErr || new Error('Не удалось скачать ' + f.name);
+    };
+    const dropTmp = () => { if (path && NET) NET.remove(path); path = null; };
+    /* способ 1: вся папка одним архивом (один запрос к Яндексу) */
+    let hasCover = false;
+    const chapters = [];
+    const AUD = /\.(mp3|m4a|m4b|aac|ogg|opus|wav|flac)$/i, IMG = /\.(jpe?g|png|webp)$/i;
+    const zipBlob = async (zb, e, type) => {
+      if (e.method === 0) return zipSlice(zb, e, type);
+      if (e.method === 8 && typeof DecompressionStream !== 'undefined') {
+        const sl = await zipSlice(zb, e);
+        const out = await new Response(sl.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+        return new Blob([out], { type: type || '' });
+      }
+      throw new Error('архив упакован неподдерживаемым способом');
+    };
+    const viaZip = async () => {
+      stage('архив папки: ссылка');
+      const rr = await netGet(YA + '/download?public_key=' + encodeURIComponent(catLink()) + '&path=' + encodeURIComponent(item.path));
+      if (rr.code !== 200) throw new Error('архив: ' + rr.code);
+      const href = JSON.parse(rr.text).href;
+      if (!href) throw new Error('архив: нет ссылки');
+      stage('архив папки: скачиваю');
+      path = await netDownload(href, (d) => { if (CAT.dl) { CAT.dl.done = d; updateCatProgress(); } });
+      stage('архив: читаю');
+      const src = (window.Capacitor && Capacitor.convertFileSrc) ? Capacitor.convertFileSrc('file://' + path) : path;
+      const zb = await tmo(fetch(src).then(r => r.blob()), 300000, 'чтение архива');
+      const ents = await readZipDir(zb);
+      const auds = ents.filter(e => AUD.test(e.name)).sort((x, y) => natCmp(basename(x.name), basename(y.name)));
+      if (!auds.length) throw new Error('в архиве нет аудио');
+      const imgE = ents.filter(e => IMG.test(e.name));
+      const covE = imgE.find(e => /cover|обложк/i.test(e.name)) || imgE[0] || null;
+      if (covE) { try { await DB.put('blobs', await zipBlob(zb, covE, mimeOf(covE.name)), id + '/cover'); hasCover = true; } catch (e) {} }
+      const used = new Set();
+      for (let i = 0; i < auds.length; i++) {
+        if (CAT.dl.stop) throw new Error('cancelled');
+        const e = auds[i];
+        const lf = files.find(f => !used.has(f) && f.size === e.usize) || null;
+        if (lf) used.add(lf);
+        const nm = lf ? lf.name : basename(e.name);
+        stage('сохраняю ' + (i + 1) + ' из ' + auds.length);
+        const key = String(i + 1).padStart(3, '0') + '_' + nm;
+        await tmo(DB.put('blobs', await zipBlob(zb, e, mimeOf(nm) || mimeOf(e.name)), id + '/a/' + key), 180000, 'сохранение ' + nm);
+        chapters.push({ ...partInfo(nm, i), audio: key, dur: 0 });
+      }
+      dropTmp();
+    };
+    const TRY_ZIP = false; /* Яндекс отдаёт для папок ошибку 500, поэтому архив отключён */
+    let zipOk = false;
+    try { if (!TRY_ZIP) throw new Error('off'); await viaZip(); zipOk = true; }
+    catch (e) {
+      if (e.message === 'cancelled' || (CAT.dl && CAT.dl.stop)) throw new Error('cancelled');
+      dropTmp(); await cleanup(id); chapters.length = 0; hasCover = false;
+      if (CAT.dl) CAT.dl.done = 0;
+      if (TRY_ZIP) { CAT.note = 'Архив папки не получился: ' + (e.message || e) + '. Качаю файлы по одному.'; stage('архив не вышел, качаю по одному'); await new Promise(r => setTimeout(r, 2500)); }
+    }
+    if (!zipOk) {
+    if (cov) {
+      if (CAT.dl.stop) throw new Error('cancelled');
+      try { await DB.put('blobs', await fetchOne(cov), id + '/cover'); hasCover = true; } catch (e) { if (e.message === 'cancelled') throw e; }
+      dropTmp(); base += cov.size || 0;
+    }
+    for (let i = 0; i < files.length; i++) {
+      if (CAT.dl.stop) throw new Error('cancelled');
+      const f = files[i];
+      const bl = await fetchOne(f);
+      const key = String(i + 1).padStart(3, '0') + '_' + f.name;
+      stage(f.name + ': сохраняю');
+      await tmo(DB.put('blobs', bl, id + '/a/' + key), 180000, 'сохранение ' + f.name);
+      const dur = 0;
+      dropTmp(); base += f.size || 0;
+      chapters.push({ ...partInfo(f.name, i), audio: key, dur });
+    }
+    }
+    CAT.dl = null;
+    await finishImport({ id, type: 'audio', title: item.title, author: '', hasCover, chapters: chapters.length, added: Date.now(), src: item.key }, { id, chapters });
+  } catch (e) {
+    const msg = e && e.message ? e.message : String(e);
+    CAT.dl = null;
+    if (path && NET) NET.remove(path);
+    if (started) await cleanup(id);
+    if (msg !== 'cancelled') CAT.err = quotaMsg(e);
+    if (routeName === 'catalog') drawCatalog();
+  }
+}
+
+SCREENS.catalog = function renderCatalog() {
+  $('#s-catalog').innerHTML = `
+    <div class="scr-pad"><div class="top" style="justify-content:flex-start;margin-left:-12px"><button class="iconbtn" id="cat-back" aria-label="Назад">${ic('back', 24)}</button><div class="ttl" style="margin-left:4px">Каталог</div></div></div>
+    <div class="scroll">
+      <div class="label" style="margin-top:6px">Ссылка на Яндекс Диск</div>
+      <div style="display:flex;gap:8px;margin-top:8px"><input id="cat-link" class="input" style="flex:1;min-width:0" type="url" placeholder="https://disk.yandex.ru/d/…" value="${esc(catLink())}" autocomplete="off"><button class="btn sm" id="cat-go" style="width:auto;padding:0 16px;height:52px">Обновить</button></div>
+      <p class="muted" style="font-size:12px;line-height:1.45;margin-top:10px">Откройте папку с книгами на Яндекс Диске, нажмите «Поделиться», скопируйте ссылку и вставьте сюда. В папке могут лежать файлы .book и подпапки с mp3: каждая подпапка станет отдельной аудиокнигой (рядом с mp3 можно положить картинку-обложку). Ссылка запоминается.</p>
+      <div id="cat-list"></div>
+    </div>`;
+  $('#cat-back').onclick = back;
+  const go1 = () => { LS.set('catalog_url', $('#cat-link').value.trim()); loadCatalog(); };
+  $('#cat-go').onclick = go1;
+  $('#cat-link').addEventListener('keydown', e => { if (e.key === 'Enter') go1(); });
+  if (CAT.dl) drawCatalog(); else loadCatalog();
+};
+
+/* ============================ настройки ============================ */
+SCREENS.settings = function renderSettings() {
+  const th = [['paper', 'Бумага', '#F5EEDD', '#2A2520'], ['sepia', 'Сепия', '#E6D5B0', '#3B2E1C'], ['graphite', 'Графит', '#3A3D42', '#E4E2DC'], ['night', 'Ночь', '#16171A', '#C9C6BE'], ['eink', 'E-ink', '#FFFFFF', '#000000']];
+  const seg = (key, items) => `<div class="seg">${items.map(([v, t]) => `<button data-k="${key}" data-v="${v}" class="${String(S[key]) === String(v) ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+  const sw = (key, text) => `<button class="switch ${S[key] ? 'on' : ''}" data-sw="${key}"><span>${text}</span><span class="sw"></span></button>`;
+  $('#s-settings').innerHTML = `
+    <div class="scr-pad"><div class="top" style="justify-content:flex-start;margin-left:-12px"><button class="iconbtn" id="st-back" aria-label="Назад">${ic('back', 24)}</button><div class="ttl" style="margin-left:4px">Настройки чтения</div></div></div>
+    <div class="scroll">
+      <div class="card preview" style="margin-top:6px">Дверь поддалась не сразу. Петли, которые никто не смазывал годами, жалобно скрипнули.</div>
+      <div class="set-sec"><div class="label">Тема</div><div class="themes">${th.map(([v, t, bg, fg]) => `<button class="theme ${S.theme === v ? 'on' : ''}" data-theme-v="${v}" style="background:${bg};color:${fg}"><b>Аа</b><span>${t}</span></button>`).join('')}</div></div>
+      <div class="set-sec"><div class="label">Шрифт</div>${seg('font', [['literata', 'Literata'], ['georgia', 'Georgia'], ['sans', 'Без засечек']])}</div>
+      <div class="set-sec"><div class="label" style="display:flex;justify-content:space-between"><span>Размер текста</span><span id="st-size">${S.size}</span></div><input type="range" id="st-range" min="14" max="30" step="1" value="${S.size}"></div>
+      <div class="set-sec"><div class="label">Межстрочный интервал</div>${seg('spacing', [[1.45, 'Плотно'], [1.65, 'Обычно'], [1.9, 'Свободно']])}</div>
+      <div class="set-sec"><div class="label">Поля от краёв экрана</div>${seg('margin', [['normal', 'Обычные'], ['narrow', 'Узкие (вдвое)']])}</div>
+      <div class="set-sec"><div class="label">Страниц на экране (планшет)</div>${seg('pages', [['auto', 'Авто'], ['1', 'Одна'], ['2', 'Две']])}</div>
+      <div class="set-sec">${sw('hl', 'Подсвечивать звучащий абзац')}${sw('follow', 'Листать страницы вслед за звуком')}${sw('awake', 'Не гасить экран при чтении')}</div>
+      <div class="set-sec"><div class="label">Синхронизация прогресса (Яндекс Диск)</div>
+        ${sw('syncOn', 'Запоминать место чтения на Диске')}
+        <input id="sync-token" class="input" type="password" placeholder="Токен Яндекс Диска" value="${esc(syncToken())}" autocomplete="off" style="margin-top:10px">
+        <button class="btn grey" id="sync-test" style="margin-top:10px">Проверить подключение</button>
+        <div class="muted" id="sync-msg" style="margin-top:8px;font-size:13px;line-height:1.4">Один и тот же токен вводится на каждом устройстве. Книга на другом устройстве узнаётся по названию и автору.</div>
+      </div>
+    </div>`;
+  $('#st-back').onclick = back;
+  $$('[data-theme-v]').forEach(b => b.onclick = () => { S.theme = b.dataset.themeV; applySettings(); SCREENS.settings(); });
+  $$('[data-k]').forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = (k === 'spacing') ? +b.dataset.v : b.dataset.v; applySettings(); SCREENS.settings(); });
+  $$('[data-sw]').forEach(b => b.onclick = () => { S[b.dataset.sw] = !S[b.dataset.sw]; applySettings(); SCREENS.settings(); });
+  $('#sync-token').onchange = e => { LS.set('sync_token', e.target.value.trim()); };
+  $('#sync-test').onclick = async () => {
+    const msg = $('#sync-msg'); LS.set('sync_token', $('#sync-token').value.trim());
+    if (!syncToken()) { msg.textContent = 'Вставьте токен.'; return; }
+    msg.textContent = 'Проверяю…';
+    try {
+      const r = await netReq('GET', 'https://cloud-api.yandex.net/v1/disk/', yaAuth());
+      if (r.code === 401) msg.textContent = 'Токен не подошёл (401). Проверьте, что скопировали его целиком.';
+      else if (r.code !== 200) msg.textContent = 'Яндекс Диск ответил ошибкой ' + r.code + '.';
+      else { const m = await netReq('PUT', YA_RES + '?path=' + encodeURIComponent(SYNC_DIR), yaAuth()); msg.textContent = (m.code === 201 || m.code === 409 || m.code === 200) ? 'Подключено. Прогресс будет сохраняться в папке «Прогресс» на Диске.' : 'Диск доступен, но папку «Прогресс» создать не удалось (' + m.code + '). Нужно право на запись.'; }
+    } catch (e) { msg.textContent = e.message || String(e); }
+  };
+  $('#st-range').oninput = e => { S.size = +e.target.value; $('#st-size').textContent = S.size; applySettings(); };
+};
+
+/* ============================ запуск ============================ */
+document.addEventListener('visibilitychange', () => { if (document.hidden) { savePos(); syncSoon(true); } else { syncBars(); syncOnOpen(); } applyAwake(); });
+window.addEventListener('focus', () => { syncBars(); applyAwake(); });
+(async function init() {
+  applySettings();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  try { META = await DB.all('meta'); await loadCovers(); } catch (e) { toast('Хранилище недоступно: ' + e.message); }
+  history.replaceState(null, '', '#lib');
+  route();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>
