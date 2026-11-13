@@ -647,7 +647,7 @@ function showImport(title) {
     <p class="muted" style="font-size:12px;margin-top:14px;line-height:1.4">Большие аудиофайлы копируются несколько минут. Не закрывайте приложение.</p></div>`;
 }
 function setImport(done, total, msg) { const b = $('#imp-bar'); if (b) b.style.width = Math.round(100 * done / Math.max(1, total)) + '%'; const m = $('#imp-msg'); if (m) m.textContent = msg; }
-const BUILD = 'v8 · 13.11 · хранилище';
+const BUILD = 'v9 · 13.11 · прогресс в имени файла';
 function errText(e) {
   if (e === null || e === undefined) return 'Браузер не сообщил причину (пустая ошибка).';
   const m = e.message || String(e);
@@ -1384,7 +1384,7 @@ function hash53(str) {
   h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
-const syncPath = () => SYNC_DIR + '/' + hash53(norm(cur.meta.title) + '|' + norm(cur.meta.author)) + '.json';
+const syncDir = () => SYNC_DIR + '/' + hash53(norm(cur.meta.title) + '|' + norm(cur.meta.author));
 const yaAuth = () => ({ Authorization: 'OAuth ' + syncToken(), Accept: 'application/json' });
 function netReq(method, url, headers, body) {
   return new Promise((res, rej) => {
@@ -1395,37 +1395,55 @@ function netReq(method, url, headers, body) {
     NET.request(id, method, url, JSON.stringify(headers || {}), body || '');
   });
 }
+/* Прогресс хранится в ИМЕНИ файла: Прогресс/<книга>/<время>~<глава>~<абзац>~<секунда>~<доля>~<режим>~<устройство>.p
+   Так его можно прочитать обычным запросом списка папки (браузер iPhone пускает только такие запросы). */
+const cleanDev = s => String(s).replace(/[~\/\\:*?"<>|]/g, ' ').slice(0, 40).trim();
+function encProg(p) { return [p.u, p.ch, p.p, Math.round((p.t || 0) * 10), Math.round((p.f || 0) * 1000), p.src === 'read' ? 'r' : 'a', cleanDev(devName())].join('~') + '.p'; }
+function decProg(name) {
+  const x = String(name).replace(/\.p$/, '').split('~');
+  if (x.length < 7 || !/^\d+$/.test(x[0])) return null;
+  return { u: +x[0], ch: +x[1], p: +x[2], t: (+x[3]) / 10, f: (+x[4]) / 1000, src: x[5] === 'r' ? 'read' : 'audio', dev: x.slice(6).join('~') };
+}
 let syncLast = 0, syncBusy = false, syncDirOk = false, syncSent = '', syncChecked = 0;
 function syncSoon(force) {
   if (!syncOn() || !cur) return;
-  if (!force && Date.now() - syncLast < 20000) return;
+  if (!force && Date.now() - syncLast < 30000) return;
   syncPush();
+}
+async function syncList(dir) {
+  const r = await netReq('GET', YA_RES + '?limit=200&fields=' + encodeURIComponent('_embedded.items.name') + '&path=' + encodeURIComponent(dir), yaAuth());
+  if (r.code === 404) return [];
+  if (r.code !== 200) throw new Error('HTTP ' + r.code);
+  return ((JSON.parse(r.text)._embedded || {}).items || []).map(i => i.name);
 }
 async function syncPush() {
   if (syncBusy || !syncOn() || !cur) return;
-  const p = cur.pos, ch = cur.data.chapters[p.ch];
+  const p = cur.pos;
   const sig = cur.meta.id + ':' + posSig(p);
   if (sig === syncSent) return;
   syncBusy = true; syncLast = Date.now();
   try {
+    const dir = syncDir();
     if (!syncDirOk) { await netReq('PUT', YA_RES + '?path=' + encodeURIComponent(SYNC_DIR), yaAuth()); syncDirOk = true; }
-    const payload = JSON.stringify({ v: 1, title: cur.meta.title, author: cur.meta.author || '', ch: p.ch, p: p.p, t: p.t || 0, f: p.f || 0, src: p.src,
-      u: p.u || Date.now(), dev: devName(), chTitle: ch ? ch.title : '', pct: LS.get('pct:' + cur.meta.id, 0) });
-    const r = await netReq('GET', YA_RES + '/upload?overwrite=true&path=' + encodeURIComponent(syncPath()), yaAuth());
+    await netReq('PUT', YA_RES + '?path=' + encodeURIComponent(dir), yaAuth());     // 201 или 409 (уже есть)
+    p.u = p.u || Date.now();
+    const name = encProg(p);
+    const r = await netReq('GET', YA_RES + '/upload?overwrite=true&path=' + encodeURIComponent(dir + '/' + name), yaAuth());
     if (r.code !== 200) throw new Error('HTTP ' + r.code);
-    const up = await netReq('PUT', JSON.parse(r.text).href, { 'Content-Type': 'application/json' }, payload);
+    const up = await netReq('PUT', JSON.parse(r.text).href, { 'Content-Type': 'text/plain' }, '1');
     if (up.code < 200 || up.code >= 300) throw new Error('HTTP ' + up.code);
     syncSent = sig;
+    /* уборка: оставляем несколько последних записей, старые удаляем (только наши файлы .p) */
+    try {
+      const all = (await syncList(dir)).map(n => ({ n, d: decProg(n) })).filter(x => x.d).sort((a, b) => b.d.u - a.d.u);
+      for (const x of all.slice(4, 30)) await netReq('DELETE', YA_RES + '?permanently=true&path=' + encodeURIComponent(dir + '/' + x.n), yaAuth());
+    } catch (e) {}
   } catch (e) { console.log('sync push: ' + (e && e.message)); }
   syncBusy = false;
 }
 async function syncFetch() {
-  const r = await netReq('GET', YA_RES + '/download?path=' + encodeURIComponent(syncPath()), yaAuth());
-  if (r.code === 404) return null;
-  if (r.code !== 200) throw new Error('HTTP ' + r.code);
-  const d = await netReq('GET', JSON.parse(r.text).href, {});
-  if (d.code !== 200) throw new Error('HTTP ' + d.code);
-  return JSON.parse(d.text);
+  const all = (await syncList(syncDir())).map(decProg).filter(Boolean).sort((a, b) => b.u - a.u);
+  return all[0] || null;
 }
 const agoText = u => { const m = Math.max(0, Math.round((Date.now() - u) / 60000)); return m < 2 ? 'только что' : m < 60 ? m + ' мин назад' : m < 1440 ? Math.round(m / 60) + ' ч назад' : Math.round(m / 1440) + ' дн назад'; };
 async function syncOnOpen() {
@@ -1434,13 +1452,13 @@ async function syncOnOpen() {
   const id = cur.meta.id;
   try {
     const rem = await syncFetch();
-    if (!rem || !cur || cur.meta.id !== id || rem.dev === devName()) return;
+    if (!rem || !cur || cur.meta.id !== id || rem.dev === cleanDev(devName())) return;
     const loc = cur.pos;
     const newer = (rem.u || 0) > (loc.u || 0) + 5000;
     const differs = rem.ch !== loc.ch || Math.abs((rem.t || 0) - (loc.t || 0)) > 20 || (rem.src === 'read' && rem.p !== loc.p);
     if (!newer || !differs) return;
     const i = await choose('Продолжить с другого устройства?',
-      'Устройство «' + rem.dev + '» остановилось здесь: ' + (rem.chTitle || ('глава ' + (rem.ch + 1))) + ', ' + Math.round((rem.pct || 0) * 100) + '% книги (' + agoText(rem.u) + ').',
+      'Устройство «' + rem.dev + '» остановилось здесь: ' + ((cur.data.chapters[rem.ch] || {}).title || ('глава ' + (rem.ch + 1))) + ', ' + Math.round(Math.min(1, (rem.ch + rem.f) / Math.max(1, cur.data.chapters.length)) * 100) + '% книги (' + agoText(rem.u) + ').',
       [{ label: 'Перейти туда', cls: '' }, { label: 'Остаться здесь', cls: 'grey' }]);
     if (i !== 0 || !cur || cur.meta.id !== id) return;
     audio.pause(); audioCh = -1;
