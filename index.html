@@ -219,7 +219,7 @@ const DB = (() => {
     const r = indexedDB.open('reader', 1);
     r.onupgradeneeded = () => { const d = r.result; d.createObjectStore('meta', { keyPath: 'id' }); d.createObjectStore('books', { keyPath: 'id' }); d.createObjectStore('blobs'); };
     r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
+    r.onerror = () => rej(r.error || new Error('Не удалось открыть хранилище браузера.'));
   }));
   const tx = async (store, mode, fn) => {
     const d = await open();
@@ -634,7 +634,7 @@ async function analyzePending() {
     }
   } catch (e) {
     pending.map.clear();
-    failImport(e && e.message ? e.message : String(e));
+    failImport(errText(e));
   }
 }
 
@@ -647,7 +647,14 @@ function showImport(title) {
     <p class="muted" style="font-size:12px;margin-top:14px;line-height:1.4">Большие аудиофайлы копируются несколько минут. Не закрывайте приложение.</p></div>`;
 }
 function setImport(done, total, msg) { const b = $('#imp-bar'); if (b) b.style.width = Math.round(100 * done / Math.max(1, total)) + '%'; const m = $('#imp-msg'); if (m) m.textContent = msg; }
+const BUILD = 'v8 · 13.11 · хранилище';
+function errText(e) {
+  if (e === null || e === undefined) return 'Браузер не сообщил причину (пустая ошибка).';
+  const m = e.message || String(e);
+  return (e.name && e.name !== 'Error' && !m.includes(e.name) ? e.name + ': ' : '') + m;
+}
 function failImport(msg) {
+  msg = (!msg || msg === 'null') ? 'Браузер не сообщил причину (пустая ошибка).' : msg;
   go('import', true);
   $('#s-import').innerHTML = `
     <div class="scr-pad"><div class="top"><div class="ttl">Не получилось</div></div></div>
@@ -671,7 +678,7 @@ function pickCover(img, preferName) {
   return img.find(x => /cover|обложк/i.test(x.name)) || img[0];
 }
 async function cleanup(id) { try { await DB.delRange('blobs', id + '/', id + '/\uffff'); } catch (e) {} }
-function quotaMsg(e) { return e === null || e === undefined ? 'Хранилище браузера отказалось сохранить данные.' : e && /quota/i.test(e.name + ' ' + e.message) ? 'Не хватает места на телефоне. Освободите память и попробуйте снова.' : (e && e.message) || String(e); }
+function quotaMsg(e) { return e && /quota/i.test(e.name + ' ' + e.message) ? 'Не хватает места на телефоне. Освободите память и попробуйте снова.' : errText(e); }
 
 async function importCombo(chaptersRaw, metaFile, img) {
   let m = {};
@@ -1530,7 +1537,7 @@ async function catDownload(item) {
   }
   CAT.dl = null;
   try { await importBookFile(blob, item.key); }
-  catch (e) { failImport(e && e.message ? e.message : String(e)); }
+  catch (e) { failImport(errText(e)); }
   finally { rmTmp(path); }
 }
 
@@ -1700,6 +1707,7 @@ SCREENS.settings = function renderSettings() {
         ${sw('syncOn', 'Запоминать место чтения на Диске')}
         <input id="sync-token" class="input" type="password" placeholder="Токен Яндекс Диска" value="${esc(syncToken())}" autocomplete="off" style="margin-top:10px">
         <button class="btn grey" id="sync-test" style="margin-top:10px">Проверить подключение</button>
+        <div class="muted" style="margin-top:8px;font-size:12px">Версия: ${BUILD}</div>
         <div class="muted" id="sync-msg" style="margin-top:8px;font-size:13px;line-height:1.4">Один и тот же токен вводится на каждом устройстве. Книга на другом устройстве узнаётся по названию и автору.</div>
       </div>
     </div>`;
