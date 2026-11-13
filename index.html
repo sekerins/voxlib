@@ -1300,15 +1300,45 @@ const netWait = {};
 let netSeq = 0;
 window.__netDone = (id, code, text) => { const w = netWait[id]; if (w) { delete netWait[id]; w.done(code, text); } };
 window.__netProgress = (id, done, total) => { const w = netWait[id]; if (w && w.progress) w.progress(done, total); };
+/* ---- запасной путь для браузера (iPhone / Safari): обычный fetch вместо Android-моста ---- */
+const BLOBS = {};
+const webErr = e => new Error('Браузер не смог связаться с Яндексом' + (e && e.message ? ' (' + e.message + ')' : '') + '. Если так на каждом запросе, Яндекс не пускает запросы из браузера.');
+async function webFetch(method, url, headers, body) {
+  try {
+    const r = await fetch(url, { method, headers: headers || {}, body: body || undefined });
+    return { code: r.status, text: await r.text() };
+  } catch (e) { throw webErr(e); }
+}
+async function webDownload(url, onProgress) {
+  let r;
+  try { r = await fetch(url); } catch (e) { throw webErr(e); }
+  if (r.status !== 200) throw new Error('Яндекс Диск не отдал файл (' + r.status + ').');
+  const total = +r.headers.get('content-length') || 0, parts = [];
+  let got = 0;
+  if (r.body && r.body.getReader) {
+    const rd = r.body.getReader();
+    for (;;) {
+      if (CAT.dl && CAT.dl.stop) { try { rd.cancel(); } catch (e) {} throw new Error('cancelled'); }
+      const { done, value } = await rd.read();
+      if (done) break;
+      parts.push(value); got += value.length; if (onProgress) onProgress(got, total);
+    }
+  } else { const b = await r.blob(); parts.push(b); got = b.size; if (onProgress) onProgress(got, got); }
+  const u = URL.createObjectURL(new Blob(parts));
+  BLOBS[u] = 1;
+  return u;
+}
+function rmTmp(p) { if (!p) return; if (NET) NET.remove(p); else if (BLOBS[p]) { URL.revokeObjectURL(p); delete BLOBS[p]; } }
 function netGet(url) {
   return new Promise((res, rej) => {
-    if (!NET) return rej(new Error('Каталог работает только в приложении на телефоне.'));
+    if (!NET) return webFetch('GET', url, {}, '').then(res, rej);
     const id = 'g' + (++netSeq);
     netWait[id] = { done: (c, t) => c === -1 ? rej(new Error('Нет связи с интернетом. ' + t)) : res({ code: c, text: t }) };
     NET.get(id, url);
   });
 }
 function netDownload(url, onProgress) {
+  if (!NET) return webDownload(url, onProgress);
   return new Promise((res, rej) => {
     const id = 'd' + (++netSeq);
     if (CAT.dl) CAT.dl.id = id;
@@ -1321,7 +1351,7 @@ function netDownload(url, onProgress) {
 const SYNC_DIR = 'disk:/Аудиокниги/VOXLIB/Прогресс';
 const YA_RES = 'https://cloud-api.yandex.net/v1/disk/resources';
 const syncToken = () => String(LS.get('sync_token', '') || '').trim();
-const syncOn = () => !!S.syncOn && !!syncToken() && !!NET && !!NET.request;
+const syncOn = () => !!S.syncOn && !!syncToken() && (!NET || !!NET.request);
 function devName() {
   let d = LS.get('devname', null);
   if (!d) {
@@ -1342,7 +1372,8 @@ const syncPath = () => SYNC_DIR + '/' + hash53(norm(cur.meta.title) + '|' + norm
 const yaAuth = () => ({ Authorization: 'OAuth ' + syncToken(), Accept: 'application/json' });
 function netReq(method, url, headers, body) {
   return new Promise((res, rej) => {
-    if (!NET || !NET.request) return rej(new Error('Нужна новая версия приложения.'));
+    if (!NET) return webFetch(method, url, headers, body).then(res, rej);
+    if (!NET.request) return rej(new Error('Нужна новая версия приложения.'));
     const id = 'r' + (++netSeq);
     netWait[id] = { done: (c, t) => c === -1 ? rej(new Error('Нет связи с интернетом. ' + t)) : res({ code: c, text: t }) };
     NET.request(id, method, url, JSON.stringify(headers || {}), body || '');
@@ -1476,14 +1507,14 @@ async function catDownload(item) {
   } catch (e) {
     CAT.dl = null;
     if (e.message !== 'cancelled') CAT.err = e.message || String(e);
-    if (path && NET) NET.remove(path);
+    rmTmp(path);
     drawCatalog();
     return;
   }
   CAT.dl = null;
   try { await importBookFile(blob, item.key); }
   catch (e) { failImport(e && e.message ? e.message : String(e)); }
-  finally { if (path && NET) NET.remove(path); }
+  finally { rmTmp(path); }
 }
 
 /* папка с mp3 на диске -> аудиокнига: файлы качаются по одному и сразу кладутся в память */
@@ -1525,14 +1556,14 @@ async function catDownloadDir(item) {
         } catch (e) {
           if (e.message === 'cancelled' || (CAT.dl && CAT.dl.stop)) throw new Error('cancelled');
           lastErr = e;
-          if (path && NET) { NET.remove(path); path = null; }
+          if (path) { rmTmp(path); path = null; }
           if (CAT.dl) CAT.dl.done = base;
           await new Promise(r => setTimeout(r, 1500));
         }
       }
       throw lastErr || new Error('Не удалось скачать ' + f.name);
     };
-    const dropTmp = () => { if (path && NET) NET.remove(path); path = null; };
+    const dropTmp = () => { rmTmp(path); path = null; };
     /* способ 1: вся папка одним архивом (один запрос к Яндексу) */
     let hasCover = false;
     const chapters = [];
@@ -1609,7 +1640,7 @@ async function catDownloadDir(item) {
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
     CAT.dl = null;
-    if (path && NET) NET.remove(path);
+    rmTmp(path);
     if (started) await cleanup(id);
     if (msg !== 'cancelled') CAT.err = quotaMsg(e);
     if (routeName === 'catalog') drawCatalog();
