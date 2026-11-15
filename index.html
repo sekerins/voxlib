@@ -650,7 +650,7 @@ function showImport(title) {
     <p class="muted" style="font-size:12px;margin-top:14px;line-height:1.4">Большие аудиофайлы копируются несколько минут. Не закрывайте приложение.</p></div>`;
 }
 function setImport(done, total, msg) { const b = $('#imp-bar'); if (b) b.style.width = Math.round(100 * done / Math.max(1, total)) + '%'; const m = $('#imp-msg'); if (m) m.textContent = msg; }
-const BUILD = 'v10 · 15.11 · плитки, отправка прогресса';
+const BUILD = 'v14 · 15.11 · время по часам Яндекса';
 function errText(e) {
   if (e === null || e === undefined) return 'Браузер не сообщил причину (пустая ошибка).';
   const m = e.message || String(e);
@@ -1387,7 +1387,9 @@ function hash53(str) {
   h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
-const syncDir = () => SYNC_DIR + '/' + hash53(norm(cur.meta.title) + '|' + norm(cur.meta.author));
+/* ключ книги: только буквы и цифры названия (двоеточия, пробелы, регистр не важны), автор не учитывается */
+const syncKey = m => String(m.title || '').toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]/g, '');
+const syncDir = () => SYNC_DIR + '/' + hash53('v2|' + syncKey(cur.meta));
 const yaAuth = () => ({ Authorization: 'OAuth ' + syncToken(), Accept: 'application/json' });
 function netReq(method, url, headers, body) {
   return new Promise((res, rej) => {
@@ -1423,10 +1425,14 @@ function syncSoon(force) {
   if (!syncTimer) syncTimer = setTimeout(() => { syncTimer = null; syncPush(); }, 8000);   // не чаще раза в 8 секунд, но всегда уходит последняя позиция
 }
 async function syncList(dir) {
-  const r = await netReq('GET', YA_RES + '?limit=200&fields=' + encodeURIComponent('_embedded.items.name') + '&path=' + encodeURIComponent(dir), yaAuth());
+  const r = await netReq('GET', YA_RES + '?limit=200&fields=' + encodeURIComponent('_embedded.items.name,_embedded.items.modified') + '&path=' + encodeURIComponent(dir), yaAuth());
   if (r.code === 404) return [];
   if (r.code !== 200) throw new Error('HTTP ' + r.code);
-  return ((JSON.parse(r.text)._embedded || {}).items || []).map(i => i.name);
+  return ((JSON.parse(r.text)._embedded || {}).items || []).map(i => ({ name: i.name, at: Date.parse(i.modified) || 0 }));
+}
+/* записи прогресса со временем ПО ЧАСАМ ЯНДЕКСА (часы устройств могут отставать, их не сравниваем) */
+async function syncRows(dir) {
+  return (await syncList(dir)).map(i => { const d = decProg(i.name); return d && Object.assign(d, { at: i.at, file: i.name }); }).filter(Boolean).sort((a, b) => b.at - a.at);
 }
 async function syncPush() {
   if (!syncOn() || !cur) return;
@@ -1449,15 +1455,16 @@ async function syncPush() {
     setSyncState(true);
     /* уборка: оставляем несколько последних записей, старые удаляем (только наши файлы .p) */
     try {
-      const all = (await syncList(dir)).map(n => ({ n, d: decProg(n) })).filter(x => x.d).sort((a, b) => b.d.u - a.d.u);
-      for (const x of all.slice(4, 30)) await netReq('DELETE', YA_RES + '?permanently=true&path=' + encodeURIComponent(dir + '/' + x.n), yaAuth());
+      const all = await syncRows(dir);
+      for (const x of all.slice(4, 30)) await netReq('DELETE', YA_RES + '?permanently=true&path=' + encodeURIComponent(dir + '/' + x.file), yaAuth());
     } catch (e) {}
   } catch (e) { console.log('sync push: ' + (e && e.message)); setSyncState(false, (e && e.message) || String(e)); }
   syncBusy = false;
 }
 async function syncFetch() {
-  const all = (await syncList(syncDir())).map(decProg).filter(Boolean).sort((a, b) => b.u - a.u);
-  return all[0] || null;
+  const me = cleanDev(devName());
+  const all = await syncRows(syncDir());
+  return { other: all.find(x => x.dev !== me) || null, mine: all.find(x => x.dev === me) || null };
 }
 const agoText = u => { const m = Math.max(0, Math.round((Date.now() - u) / 60000)); return m < 2 ? 'только что' : m < 60 ? m + ' мин назад' : m < 1440 ? Math.round(m / 60) + ' ч назад' : Math.round(m / 1440) + ' дн назад'; };
 async function syncOnOpen() {
@@ -1465,18 +1472,20 @@ async function syncOnOpen() {
   syncChecked = Date.now();
   const id = cur.meta.id;
   try {
-    const rem = await syncFetch();
-    if (!rem || !cur || cur.meta.id !== id || rem.dev === cleanDev(devName())) return;
+    const f = await syncFetch();
+    const rem = f.other;
+    if (!rem || !cur || cur.meta.id !== id) return;
     const loc = cur.pos;
-    const newer = (rem.u || 0) > (loc.u || 0) + 5000;
+    const newer = !f.mine || rem.at > f.mine.at;      // последним на Диск писало другое устройство
     const differs = rem.ch !== loc.ch || Math.abs((rem.t || 0) - (loc.t || 0)) > 20 || (rem.src === 'read' && rem.p !== loc.p);
     if (!newer || !differs) return;
     const i = await choose('Продолжить с другого устройства?',
-      'Устройство «' + rem.dev + '» остановилось здесь: ' + ((cur.data.chapters[rem.ch] || {}).title || ('глава ' + (rem.ch + 1))) + ', ' + Math.round(Math.min(1, (rem.ch + rem.f) / Math.max(1, cur.data.chapters.length)) * 100) + '% книги (' + agoText(rem.u) + ').',
+      'Устройство «' + rem.dev + '» остановилось здесь: ' + ((cur.data.chapters[rem.ch] || {}).title || ('глава ' + (rem.ch + 1))) + ', ' + Math.round(Math.min(1, (rem.ch + rem.f) / Math.max(1, cur.data.chapters.length)) * 100) + '% книги (' + agoText(rem.at) + ').',
       [{ label: 'Перейти туда', cls: '' }, { label: 'Остаться здесь', cls: 'grey' }]);
-    if (i !== 0 || !cur || cur.meta.id !== id) return;
+    if (!cur || cur.meta.id !== id) return;
+    if (i !== 0) { cur.pos.u = Date.now(); syncSent = ''; syncSoon(true); return; }   // «остаться»: записываем своё место, чтобы не спрашивать снова
     audio.pause(); audioCh = -1;
-    Object.assign(cur.pos, { ch: rem.ch, p: rem.p, t: rem.t || 0, src: rem.src || 'audio', pk: null, u: rem.u });
+    Object.assign(cur.pos, { ch: rem.ch, p: rem.p, t: rem.t || 0, src: rem.src || 'audio', pk: null, u: Date.now() });
     cur._sig = posSig(cur.pos);
     savePos(); route();
   } catch (e) { console.log('sync open: ' + (e && e.message)); }
@@ -1738,9 +1747,11 @@ SCREENS.settings = function renderSettings() {
       <div class="set-sec"><div class="label">Синхронизация прогресса (Яндекс Диск)</div>
         ${sw('syncOn', 'Запоминать место чтения на Диске')}
         <input id="sync-token" class="input" type="password" placeholder="Токен Яндекс Диска" value="${esc(syncToken())}" autocomplete="off" style="margin-top:10px">
+        <input id="sync-dev" class="input" type="text" placeholder="Название этого устройства" value="${esc(devName())}" autocomplete="off" style="margin-top:10px">
         <button class="btn grey" id="sync-test" style="margin-top:10px">Проверить подключение</button>
         <div class="muted" style="margin-top:8px;font-size:12px">Версия: ${BUILD}</div>
         <button class="btn grey" id="sync-now" style="margin-top:10px">Отправить прогресс сейчас</button>
+        <button class="btn grey" id="sync-show" style="margin-top:10px">Показать записи на Диске</button>
         <div class="muted" id="sync-msg" style="margin-top:8px;font-size:13px;line-height:1.4">${esc(syncStateText())}<br>Один и тот же токен вводится на каждом устройстве. Книга на другом устройстве узнаётся по названию и автору.</div>
       </div>
     </div>`;
@@ -1748,14 +1759,27 @@ SCREENS.settings = function renderSettings() {
   $$('[data-theme-v]').forEach(b => b.onclick = () => { S.theme = b.dataset.themeV; applySettings(); SCREENS.settings(); });
   $$('[data-k]').forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = (k === 'spacing') ? +b.dataset.v : b.dataset.v; applySettings(); SCREENS.settings(); });
   $$('[data-sw]').forEach(b => b.onclick = () => { S[b.dataset.sw] = !S[b.dataset.sw]; applySettings(); SCREENS.settings(); });
+  $('#sync-dev').onchange = e => { const v = cleanDev(e.target.value); if (v) { LS.set('devname', v); e.target.value = v; } };
   $('#sync-token').onchange = e => { LS.set('sync_token', e.target.value.trim()); };
   $('#sync-now').onclick = async () => {
     const msg = $('#sync-msg'); LS.set('sync_token', $('#sync-token').value.trim());
     if (!syncOn()) { msg.textContent = 'Включите переключатель и вставьте токен.'; return; }
     if (!cur) { msg.textContent = 'Сначала откройте книгу, затем вернитесь в настройки.'; return; }
-    msg.textContent = 'Отправляю…'; syncSent = ''; syncBusy = false;
+    msg.textContent = 'Отправляю…'; syncSent = ''; syncBusy = false; cur.pos.u = Date.now(); LS.set('pos:' + cur.meta.id, cur.pos);
     await syncPush();
     msg.textContent = syncStateText();
+  };
+  $('#sync-show').onclick = async () => {
+    const msg = $('#sync-msg'); LS.set('sync_token', $('#sync-token').value.trim());
+    if (!syncOn()) { msg.textContent = 'Включите переключатель и вставьте токен.'; return; }
+    if (!cur) { msg.textContent = 'Сначала откройте книгу, затем вернитесь в настройки.'; return; }
+    msg.textContent = 'Читаю Диск…';
+    try {
+      const rows = await syncRows(syncDir());
+      const key = '«' + cur.meta.title + '» → ' + syncKey(cur.meta);
+      msg.innerHTML = 'Книга для сверки: ' + esc(key) + '<br>Это устройство: ' + esc(cleanDev(devName())) + '<br>' +
+        (rows.length ? rows.map(r => '• ' + esc(r.dev) + ': глава ' + (r.ch + 1) + ', ' + agoText(r.at)).join('<br>') : 'На Диске для этой книги записей нет.');
+    } catch (e) { msg.textContent = 'Ошибка: ' + (e.message || e); }
   };
   $('#sync-test').onclick = async () => {
     const msg = $('#sync-msg'); LS.set('sync_token', $('#sync-token').value.trim());
