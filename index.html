@@ -62,9 +62,12 @@ h1,h2,h3,p{margin:0}
 .cont .info{flex:1;min-width:0;display:flex;flex-direction:column}
 .cont .btns{display:flex;gap:8px;margin-top:14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:18px 12px;margin-top:12px}
-.tile{display:flex;flex-direction:column;gap:6px;min-width:0;text-align:left;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.tile{display:block;width:100%;min-width:0;text-align:left;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.tile>*+*{margin-top:6px}
+.tile .cover{width:100%;height:0;padding-bottom:150%}
 .tile .t{font-size:13px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile.add{border:1.5px dashed var(--faint);border-radius:8px;aspect-ratio:2/3;align-items:center;justify-content:center;color:var(--muted);font-size:13px;align-self:start}
+.tile.add{position:relative;height:0;padding-bottom:150%;border:1.5px dashed var(--faint);border-radius:8px;color:var(--muted);font-size:13px;align-self:start;box-sizing:border-box}
+.tile.add>span{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;margin:0}
 .empty{padding:48px 12px;text-align:center;color:var(--muted);line-height:1.5}
 .list-item{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 10px;margin:0 -10px;border-radius:12px;border-bottom:1px solid var(--line2);width:calc(100% + 20px);text-align:left}
 .list-item.now{background:var(--hl)}
@@ -473,7 +476,7 @@ function fillLib() {
         </div>
       </div></div>`;
   }
-  const tiles = list.map(m => `<button class="tile" data-id="${m.id}">${coverHTML(m, 'aspect-ratio:2/3', true)}<div class="trow"><div class="t">${esc(m.title)}</div><span class="pc">${Math.round(pctOf(m) * 100)}%</span></div><div class="bar4"><i style="width:${Math.round(pctOf(m) * 100)}%"></i></div></button>`).join('');
+  const tiles = list.map(m => `<button class="tile" data-id="${m.id}">${coverHTML(m, '', true)}<div class="trow"><div class="t">${esc(m.title)}</div><span class="pc">${Math.round(pctOf(m) * 100)}%</span></div><div class="bar4"><i style="width:${Math.round(pctOf(m) * 100)}%"></i></div></button>`).join('');
   const shelf = SHELVES.find(s => s.id === LIB.shelf);
   let note = '';
   if (!META.length) note = '<div class="empty">Пока здесь пусто.<br>Нажмите «+», чтобы добавить первую книгу.</div>';
@@ -482,7 +485,7 @@ function fillLib() {
   box.innerHTML = `
     ${cont}
     ${META.length ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:${cont ? 20 : 4}px"><h2 style="font-size:17px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(shelf ? shelf.name : 'Все книги')}</h2><button class="sortbtn" id="lib-sort">${SORTS[LIB.sort]}${ic('down', 14)}</button></div>` : ''}
-    <div class="grid">${tiles}${q ? '' : `<button class="tile add" id="lib-add2" aria-label="Добавить книгу">${ic('plus', 26)}Добавить</button>`}</div>
+    <div class="grid">${tiles}${q ? '' : `<button class="tile add" id="lib-add2" aria-label="Добавить книгу"><span>${ic('plus', 26)}Добавить</span></button>`}</div>
     ${note}`;
   if ($('#lib-add2')) $('#lib-add2').onclick = () => go('add');
   if ($('#lib-sort')) $('#lib-sort').onclick = sortMenu;
@@ -647,7 +650,7 @@ function showImport(title) {
     <p class="muted" style="font-size:12px;margin-top:14px;line-height:1.4">Большие аудиофайлы копируются несколько минут. Не закрывайте приложение.</p></div>`;
 }
 function setImport(done, total, msg) { const b = $('#imp-bar'); if (b) b.style.width = Math.round(100 * done / Math.max(1, total)) + '%'; const m = $('#imp-msg'); if (m) m.textContent = msg; }
-const BUILD = 'v9 · 13.11 · прогресс в имени файла';
+const BUILD = 'v10 · 15.11 · плитки, отправка прогресса';
 function errText(e) {
   if (e === null || e === undefined) return 'Браузер не сообщил причину (пустая ошибка).';
   const m = e.message || String(e);
@@ -1391,7 +1394,8 @@ function netReq(method, url, headers, body) {
     if (!NET) return webFetch(method, url, headers, body).then(res, rej);
     if (!NET.request) return rej(new Error('Нужна новая версия приложения.'));
     const id = 'r' + (++netSeq);
-    netWait[id] = { done: (c, t) => c === -1 ? rej(new Error('Нет связи с интернетом. ' + t)) : res({ code: c, text: t }) };
+    const tm = setTimeout(() => { if (netWait[id]) { delete netWait[id]; rej(new Error('Нет ответа от Яндекса за 30 секунд.')); } }, 30000);
+    netWait[id] = { done: (c, t) => { clearTimeout(tm); c === -1 ? rej(new Error('Нет связи с интернетом. ' + t)) : res({ code: c, text: t }); } };
     NET.request(id, method, url, JSON.stringify(headers || {}), body || '');
   });
 }
@@ -1404,11 +1408,19 @@ function decProg(name) {
   if (x.length < 7 || !/^\d+$/.test(x[0])) return null;
   return { u: +x[0], ch: +x[1], p: +x[2], t: (+x[3]) / 10, f: (+x[4]) / 1000, src: x[5] === 'r' ? 'read' : 'audio', dev: x.slice(6).join('~') };
 }
-let syncLast = 0, syncBusy = false, syncDirOk = false, syncSent = '', syncChecked = 0;
+let syncLast = 0, syncBusy = false, syncBusyAt = 0, syncDirOk = false, syncSent = '', syncChecked = 0, syncTimer = null;
+const syncState = () => LS.get('sync_state', null);
+const setSyncState = (ok, msg) => LS.set('sync_state', { t: Date.now(), ok, msg: msg || '' });
+function syncStateText() {
+  const s = syncState();
+  if (!s) return 'Отправка прогресса ещё не выполнялась.';
+  const d = new Date(s.t), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  return s.ok ? 'Последняя отправка: ' + hm + ', успешно.' : 'Последняя отправка: ' + hm + ', ОШИБКА: ' + s.msg;
+}
 function syncSoon(force) {
   if (!syncOn() || !cur) return;
-  if (!force && Date.now() - syncLast < 30000) return;
-  syncPush();
+  if (force) { clearTimeout(syncTimer); syncTimer = null; syncPush(); return; }
+  if (!syncTimer) syncTimer = setTimeout(() => { syncTimer = null; syncPush(); }, 8000);   // не чаще раза в 8 секунд, но всегда уходит последняя позиция
 }
 async function syncList(dir) {
   const r = await netReq('GET', YA_RES + '?limit=200&fields=' + encodeURIComponent('_embedded.items.name') + '&path=' + encodeURIComponent(dir), yaAuth());
@@ -1417,11 +1429,12 @@ async function syncList(dir) {
   return ((JSON.parse(r.text)._embedded || {}).items || []).map(i => i.name);
 }
 async function syncPush() {
-  if (syncBusy || !syncOn() || !cur) return;
+  if (!syncOn() || !cur) return;
+  if (syncBusy && Date.now() - syncBusyAt < 60000) { syncSoon(false); return; }
   const p = cur.pos;
   const sig = cur.meta.id + ':' + posSig(p);
   if (sig === syncSent) return;
-  syncBusy = true; syncLast = Date.now();
+  syncBusy = true; syncBusyAt = Date.now(); syncLast = Date.now();
   try {
     const dir = syncDir();
     if (!syncDirOk) { await netReq('PUT', YA_RES + '?path=' + encodeURIComponent(SYNC_DIR), yaAuth()); syncDirOk = true; }
@@ -1433,12 +1446,13 @@ async function syncPush() {
     const up = await netReq('PUT', JSON.parse(r.text).href, { 'Content-Type': 'text/plain' }, '1');
     if (up.code < 200 || up.code >= 300) throw new Error('HTTP ' + up.code);
     syncSent = sig;
+    setSyncState(true);
     /* уборка: оставляем несколько последних записей, старые удаляем (только наши файлы .p) */
     try {
       const all = (await syncList(dir)).map(n => ({ n, d: decProg(n) })).filter(x => x.d).sort((a, b) => b.d.u - a.d.u);
       for (const x of all.slice(4, 30)) await netReq('DELETE', YA_RES + '?permanently=true&path=' + encodeURIComponent(dir + '/' + x.n), yaAuth());
     } catch (e) {}
-  } catch (e) { console.log('sync push: ' + (e && e.message)); }
+  } catch (e) { console.log('sync push: ' + (e && e.message)); setSyncState(false, (e && e.message) || String(e)); }
   syncBusy = false;
 }
 async function syncFetch() {
@@ -1726,7 +1740,8 @@ SCREENS.settings = function renderSettings() {
         <input id="sync-token" class="input" type="password" placeholder="Токен Яндекс Диска" value="${esc(syncToken())}" autocomplete="off" style="margin-top:10px">
         <button class="btn grey" id="sync-test" style="margin-top:10px">Проверить подключение</button>
         <div class="muted" style="margin-top:8px;font-size:12px">Версия: ${BUILD}</div>
-        <div class="muted" id="sync-msg" style="margin-top:8px;font-size:13px;line-height:1.4">Один и тот же токен вводится на каждом устройстве. Книга на другом устройстве узнаётся по названию и автору.</div>
+        <button class="btn grey" id="sync-now" style="margin-top:10px">Отправить прогресс сейчас</button>
+        <div class="muted" id="sync-msg" style="margin-top:8px;font-size:13px;line-height:1.4">${esc(syncStateText())}<br>Один и тот же токен вводится на каждом устройстве. Книга на другом устройстве узнаётся по названию и автору.</div>
       </div>
     </div>`;
   $('#st-back').onclick = back;
@@ -1734,6 +1749,14 @@ SCREENS.settings = function renderSettings() {
   $$('[data-k]').forEach(b => b.onclick = () => { const k = b.dataset.k; S[k] = (k === 'spacing') ? +b.dataset.v : b.dataset.v; applySettings(); SCREENS.settings(); });
   $$('[data-sw]').forEach(b => b.onclick = () => { S[b.dataset.sw] = !S[b.dataset.sw]; applySettings(); SCREENS.settings(); });
   $('#sync-token').onchange = e => { LS.set('sync_token', e.target.value.trim()); };
+  $('#sync-now').onclick = async () => {
+    const msg = $('#sync-msg'); LS.set('sync_token', $('#sync-token').value.trim());
+    if (!syncOn()) { msg.textContent = 'Включите переключатель и вставьте токен.'; return; }
+    if (!cur) { msg.textContent = 'Сначала откройте книгу, затем вернитесь в настройки.'; return; }
+    msg.textContent = 'Отправляю…'; syncSent = ''; syncBusy = false;
+    await syncPush();
+    msg.textContent = syncStateText();
+  };
   $('#sync-test').onclick = async () => {
     const msg = $('#sync-msg'); LS.set('sync_token', $('#sync-token').value.trim());
     if (!syncToken()) { msg.textContent = 'Вставьте токен.'; return; }
